@@ -1,0 +1,6 @@
+{
+  "scriboodle.screen.modify_tool": "Modify Tool Screen",
+  "scriboodle.screen.scribble": "Scribble Screen",
+
+  "scriboodle.command.scriboodle.failure.item": "Unsupported Item: %s"
+}

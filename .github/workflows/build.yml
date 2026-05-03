@@ -1,0 +1,59 @@
+# Automatically build the project and run any configured tests for every push
+# and submitted pull request. This can help catch issues that only occur on
+# certain platforms or Java versions, and provides a first line of defence
+# against bad commits.
+
+name: build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+
+
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v5
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: "microsoft"
+
+      - name: install nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: cache libpen
+        uses: actions/cache@v4
+        id: libpen-cache
+        with:
+          path: libpen/result
+          key: libpen-${{ runner.os }}-${{ hashFiles('libpen/**') }}
+
+      - name: build libpen
+        if: steps.libpen-cache.outputs.cache-hit != 'true'
+        working-directory: libpen
+        run: nix build
+
+      - name: ensure native directory exists
+        run: mkdir -p src/main/resources/natives
+
+      - name: copy libpen.so
+        run: |
+          cp --no-preserve=mode,ownership libpen/result/lib/libpen.so \
+            src/main/resources/natives/
+
+      - name: run build script
+        run: ./build.sh
+
+      - name: upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: Artifacts
+          path: build/libs/

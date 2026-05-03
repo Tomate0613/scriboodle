@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"name": "Scriboodle",
+	"id": "scriboodle",
+	"version": "${version}",
+	"description": "Scribble and draw on books and paper",
+	"authors": [
+		"Tomate0613"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/project/scriboodle",
+		"sources": "https://github.com/Tomate0613/scriboodle"
+	},
+	"license": "ARR",
+	"icon": "assets/scriboodle/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.doublekekse.scriboodle.Scriboodle"
+		],
+		"client": [
+			"dev.doublekekse.scriboodle.client.ScriboodleClient"
+		],
+		"fabric-datagen": [
+			"dev.doublekekse.scriboodle.ScriboodleDataGenerator"
+		]
+	},
+	"mixins": [
+		"scriboodle.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.18.6",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"accessWidener" : "scriboodle.classtweaker"
+}
