@@ -36,16 +36,20 @@ runs:
       if: steps.libpen-cache.outputs.cache-hit != 'true'
       working-directory: libpen
       run: nix build
+      shell: bash
 
     - name: ensure native directory exists
       if: steps.libpen-cache.outputs.cache-hit != 'true'
       run: mkdir -p src/main/resources/natives
+      shell: bash
 
     - name: copy libpen.so
       if: steps.libpen-cache.outputs.cache-hit != 'true'
       run: |
         cp --no-preserve=mode,ownership libpen/result/lib/libpen.so \
           src/main/resources/natives/
+      shell: bash
 
     - name: run build script
       run: ./gradlew build
+      shell: bash
