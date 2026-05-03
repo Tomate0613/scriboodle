@@ -1,0 +1,25 @@
+name: publish
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/build
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: "Mod Publish"
+    steps:
+      - uses: actions/checkout@v6
+      - name: publish
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: 1KTbgBgQ
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          version-type: alpha
