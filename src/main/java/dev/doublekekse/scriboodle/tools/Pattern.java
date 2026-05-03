@@ -25,7 +25,7 @@ public interface Pattern {
         return ColorUtils.mix(previousColor, ARGB.color(0xff, newColor), alpha * voronoi * opacity);
     };
     Pattern BUBBLES = (x, y, previousColor, newColor, alpha, opacity) -> {
-        var voronoi = VoronoiNoise.ZERO.f1(new Vec2d(x, y).randomize(1).scale(Slider.number("charcoal_scale", 2.0)));
+        var voronoi = VoronoiNoise.ZERO.f1(new Vec2d(x, y).randomize(1).scale(.1));
         return ColorUtils.mix(previousColor, ARGB.color(0xff, newColor), M.influence(M.quantize(voronoi, 4), .6) * opacity * alpha + (Math.random() * .01));
     };
 }
