@@ -78,9 +78,8 @@ public class ToolModifyScreen extends Screen {
         toolsLayout.addChild(dynamics());
         toolsLayout.addChild(radii());
         toolsLayout.addChild(spacing());
+        toolsLayout.addChild(opacity());
 
-        opacitySlider = new OpacitySlider(itemsPerRow() * 65, 10);
-        toolsLayout.addChild(opacitySlider);
         toolsLayout.addChild(new SpacerElement(5, 5));
 
         toolsLayout.arrangeElements();
@@ -93,7 +92,6 @@ public class ToolModifyScreen extends Screen {
         mainPreviewLayout.addChild(mainPreview);
 
         mainLayout.addChild(scrollLayout);
-//        mainLayout.addChild(mainPreview, layoutSettings -> layoutSettings.alignVerticallyMiddle().alignHorizontallyCenter());
         mainLayout.addChild(mainPreviewLayout);
 
         mainLayout.visitWidgets(this::addRenderableWidget);
@@ -164,13 +162,13 @@ public class ToolModifyScreen extends Screen {
         layout.defaultCellSetting().alignHorizontallyCenter();
         var presetsLayout = flex().spacing(5);
 
-        presetsLayout.addChild(new SelectPenDistanceButton(.1));
-        presetsLayout.addChild(new SelectPenDistanceButton(.2));
-        presetsLayout.addChild(new SelectPenDistanceButton(.3));
-        presetsLayout.addChild(new SelectPenDistanceButton(.35));
-        presetsLayout.addChild(new SelectPenDistanceButton(.5));
+        presetsLayout.addChild(new SelectSpacingButton(.1));
+        presetsLayout.addChild(new SelectSpacingButton(.2));
+        presetsLayout.addChild(new SelectSpacingButton(.3));
+        presetsLayout.addChild(new SelectSpacingButton(.35));
+        presetsLayout.addChild(new SelectSpacingButton(.5));
 
-        spacingSlider = new SpacingSlider(itemsPerRow() * 65, 10);
+        spacingSlider = new SpacingSlider(sliderWidth(), 10);
 
         layout.addChild(presetsLayout);
         layout.addChild(spacingSlider);
@@ -178,8 +176,31 @@ public class ToolModifyScreen extends Screen {
         return layout;
     }
 
+    private LinearLayout opacity() {
+        var layout = LinearLayout.vertical().spacing(5);
+        layout.defaultCellSetting().alignHorizontallyCenter();
+        var presetsLayout = flex().spacing(5);
+
+        presetsLayout.addChild(new SelectOpacityButton(.1));
+        presetsLayout.addChild(new SelectOpacityButton(.25));
+        presetsLayout.addChild(new SelectOpacityButton(.5));
+        presetsLayout.addChild(new SelectOpacityButton(.75));
+        presetsLayout.addChild(new SelectOpacityButton(1));
+
+        opacitySlider = new OpacitySlider(sliderWidth(), 10);
+
+        layout.addChild(presetsLayout);
+        layout.addChild(opacitySlider);
+
+        return layout;
+    }
+
     int previewSize() {
         return Math.max(Math.min(width - scrollLayout.getWidth() - 15, height / 2), 40);
+    }
+
+    int sliderWidth() {
+        return Math.min(itemsPerRow(), 5) * 65;
     }
 
     int itemsPerRow() {
@@ -190,8 +211,8 @@ public class ToolModifyScreen extends Screen {
     protected void repositionElements() {
         mainLayout.setSize(width, height);
 
-        spacingSlider.setWidth(itemsPerRow() * 65);
-        opacitySlider.setWidth(itemsPerRow() * 65);
+        spacingSlider.setWidth(sliderWidth());
+        opacitySlider.setWidth(sliderWidth());
 
         for (var flex : flexLayouts) {
             flex.maxItemsPerRow(itemsPerRow());
@@ -500,11 +521,11 @@ public class ToolModifyScreen extends Screen {
         }
     }
 
-    class SelectPenDistanceButton extends ToolSettingButton {
+    class SelectSpacingButton extends ToolSettingButton {
         double penDistance;
 
-        SelectPenDistanceButton(double penDistance) {
-            super("pen_distance_" + penDistance);
+        SelectSpacingButton(double penDistance) {
+            super("spacing_" + penDistance);
 
             this.penDistance = penDistance;
         }
@@ -523,6 +544,37 @@ public class ToolModifyScreen extends Screen {
         @Override
         Tool applySetting(Tool tool) {
             return tool.withSpacing(penDistance);
+        }
+
+        @Override
+        Tool previewTool() {
+            return tool;
+        }
+    }
+
+    class SelectOpacityButton extends ToolSettingButton {
+        double opacity;
+
+        SelectOpacityButton(double opacity) {
+            super("opacity_" + opacity);
+
+            this.opacity = opacity;
+        }
+
+        @Override
+        public void onPress(@NonNull InputWithModifiers input) {
+            super.onPress(input);
+            opacitySlider.setValue(opacity);
+        }
+
+        @Override
+        boolean isUsed() {
+            return tool.opacity() == opacity;
+        }
+
+        @Override
+        Tool applySetting(Tool tool) {
+            return tool.withOpacity(opacity);
         }
 
         @Override
