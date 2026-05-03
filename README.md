@@ -1,6 +1,6 @@
 # Scriboodle
 
-![](https://cdn.modrinth.com/data/1KTbgBgQ/images/1434879b597d88a5d1ccd4c0ed8475bd2e15380c.png)
+![Drawing on paper](https://cdn.modrinth.com/data/1KTbgBgQ/images/1434879b597d88a5d1ccd4c0ed8475bd2e15380c.png)
 
 Use the command `/scriboodle` with book or paper in hand to enable drawing
 
