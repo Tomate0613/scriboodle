@@ -6,6 +6,7 @@ import dev.doublekekse.scriboodle.data.ScribbleData;
 import dev.doublekekse.scriboodle.duck.MinecraftServerDuck;
 import dev.doublekekse.scriboodle.packet.ScribblePacket;
 import dev.doublekekse.scriboodle.registry.ScriboodleComponents;
+import dev.doublekekse.scriboodle.registry.ScriboodleSoundEvents;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -25,8 +26,6 @@ import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-
 import java.util.Collections;
 
 import static net.minecraft.commands.Commands.literal;
@@ -39,8 +38,8 @@ public class Scriboodle implements ModInitializer {
     @Override
     public void onInitialize() {
 //        SharedConstants.IS_RUNNING_IN_IDE = true;
-        LOGGER.info(String.valueOf(ImageIO.getCacheDirectory()));
         ScriboodleComponents.register();
+        ScriboodleSoundEvents.register();
 
         PayloadTypeRegistry.serverboundPlay().register(ScribblePacket.TYPE, ScribblePacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ScribblePacket.TYPE, ScribblePacket.STREAM_CODEC);

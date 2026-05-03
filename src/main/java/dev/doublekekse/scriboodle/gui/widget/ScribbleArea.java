@@ -7,6 +7,7 @@ import dev.doublekekse.scriboodle.data.ScribbleData;
 import dev.doublekekse.scriboodle.duck.GuiGraphicsExtractorDuck;
 import dev.doublekekse.scriboodle.math.Vec2d;
 import dev.doublekekse.scriboodle.pen.PenApi;
+import dev.doublekekse.scriboodle.registry.ScriboodleSoundEvents;
 import dev.doublekekse.scriboodle.tools.CanvasAccess;
 import dev.doublekekse.scriboodle.tools.Tool;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -19,7 +20,6 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.DyeColor;
 import org.joml.Math;
@@ -182,7 +182,7 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
         var radius = tool.radius(radiusIndex, pressure);
 
         if (data.nearBounds(pos, radius)) {
-            soundManager.play(SimpleSoundInstance.forUI(SoundEvents.AZALEA_STEP, (float) (Math.random() + 0.7), (float) (VOLUME_BASE + VOLUME_FACTOR * dist)));
+            soundManager.play(SimpleSoundInstance.forUI(ScriboodleSoundEvents.SCRIBBLE, (float) (Math.random() + 0.7), (float) (VOLUME_BASE + VOLUME_FACTOR * dist)));
         }
 
         previous = tool.drawStroke(this, previous, pos, radius, pressure, distance, realColor);
