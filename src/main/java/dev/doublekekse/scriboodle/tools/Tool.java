@@ -24,7 +24,7 @@ public record Tool(
             var prev = access.get(x, y);
             var newColor = pattern.getColor(prev, color, alpha, dynamics.modifyOpacity(opacity, pressure, distance));
             access.set(x, y, newColor);
-        }, center.x(), center.y(), dir.x(), dir.y(), radius);
+        }, center, dir, radius);
     }
 
     public void stamp(CanvasAccess access, Vec2d pos, double radius, double pressure, int color) {
