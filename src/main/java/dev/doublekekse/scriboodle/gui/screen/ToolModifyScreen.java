@@ -127,8 +127,9 @@ public class ToolModifyScreen extends Screen {
         layout.addChild(new SelectPatternButton(Pattern.SOFT, "soft"));
         layout.addChild(new SelectPatternButton(Pattern.ROUGH, "rough"));
         layout.addChild(new SelectPatternButton(Pattern.ROUGH_OTHER, "rough_other"));
-        layout.addChild(new SelectPatternButton(Pattern.VORONOI, "voronoi_pattern"));
+        layout.addChild(new SelectPatternButton(Pattern.VORONOI, "voronoi"));
         layout.addChild(new SelectPatternButton(Pattern.VORONOI_OTHER, "voronoi_other"));
+        layout.addChild(new SelectPatternButton(Pattern.BUBBLES, "bubbles"));
 
         return layout;
     }
@@ -166,7 +167,7 @@ public class ToolModifyScreen extends Screen {
         presetsLayout.addChild(new SelectPenDistanceButton(.1));
         presetsLayout.addChild(new SelectPenDistanceButton(.2));
         presetsLayout.addChild(new SelectPenDistanceButton(.3));
-//        presetsLayout.addChild(new SelectPenDistanceButton(.35));
+        presetsLayout.addChild(new SelectPenDistanceButton(.35));
         presetsLayout.addChild(new SelectPenDistanceButton(.5));
 
         spacingSlider = new SpacingSlider(itemsPerRow() * 65, 10);

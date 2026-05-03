@@ -1,6 +1,8 @@
 package dev.doublekekse.scriboodle.tools;
 
+import dev.doublekekse.Slider;
 import dev.doublekekse.scriboodle.ColorUtils;
+import dev.doublekekse.scriboodle.math.M;
 import dev.doublekekse.scriboodle.math.Vec2d;
 import dev.doublekekse.scriboodle.math.VoronoiNoise;
 import net.minecraft.util.ARGB;
@@ -22,5 +24,8 @@ public interface Pattern {
         var voronoi = 1 - VoronoiNoise.ZERO.f2MinusF1(new Vec2d(x, y).scale(2));
         return ColorUtils.mix(previousColor, ARGB.color(0xff, newColor), alpha * voronoi * opacity);
     };
-
+    Pattern BUBBLES = (x, y, previousColor, newColor, alpha, opacity) -> {
+        var voronoi = VoronoiNoise.ZERO.f1(new Vec2d(x, y).randomize(1).scale(Slider.number("charcoal_scale", 2.0)));
+        return ColorUtils.mix(previousColor, ARGB.color(0xff, newColor), M.influence(M.quantize(voronoi, 4), .6) * opacity * alpha + (Math.random() * .01));
+    };
 }

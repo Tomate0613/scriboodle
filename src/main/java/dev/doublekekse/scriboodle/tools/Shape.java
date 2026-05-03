@@ -1,5 +1,6 @@
 package dev.doublekekse.scriboodle.tools;
 
+import dev.doublekekse.scriboodle.math.M;
 import dev.doublekekse.scriboodle.math.Vec2d;
 import dev.doublekekse.scriboodle.math.VoronoiNoise;
 import org.joml.Math;
@@ -24,8 +25,8 @@ public interface Shape {
                 return Optional.empty();
             }
 
-            var op = fractalNoise(y + Math.random() * .2);
-            return Optional.of(influence(op, .5 * influence(Math.abs(1 - Math.cos((x / 1.5) / Math.PI)), 1)));
+            var op = M.fractalNoise(y + Math.random() * .2);
+            return Optional.of(M.influence(op, .5 * M.influence(Math.abs(1 - Math.cos((x / 1.5) / Math.PI)), 1)));
         };
 
         default ShapePredicate rotated() {
@@ -89,7 +90,7 @@ public interface Shape {
         for (var dx = -radius; dx < radius; dx++) {
             for (var dy = -radius; dy < radius; dy++) {
                 var angle = new Vec2d(dx, dy).angle();
-                if (dx * dx + dy * dy < radius * radius * influence(Math.sin((noisy(((angle) * 3) + 9, 1, offset, 0.2)) + dir.angle()), .3)) {
+                if (dx * dx + dy * dy < radius * radius * M.influence(Math.sin((M.noisy(((angle) * 3) + 9, 1, offset, 0.2)) + dir.angle()), .3)) {
 
                     var d = org.joml.Math.sqrt((dx * dx) + (dy * dy));
                     var t = d / radius;
@@ -130,10 +131,10 @@ public interface Shape {
             for (var dy = -radius; dy < radius; dy++) {
                 var delta = new Vec2d(dx, dy);
                 var angle = delta.angle();
-                if (dx * dx + dy * dy < radius * radius * influence(Math.sin((noisy(((angle) * 3) + 9, 1, offset, 0.1)) + dir.angle()), .3)) {
+                if (dx * dx + dy * dy < radius * radius * M.influence(Math.sin((M.noisy(((angle) * 3) + 9, 1, offset, 0.1)) + dir.angle()), .3)) {
                     var hD = holeDistance(holes, delta, radius);
 
-                    if (hD < .2 * radius * influence(Math.sin(dx + dy), .2)) {
+                    if (hD < .2 * radius * M.influence(Math.sin(dx + dy), .2)) {
                         continue;
                     }
 
@@ -192,7 +193,7 @@ public interface Shape {
             var vv1 = v1 * v1 * v1 * v1 * v1 * v1;
             var vv2 = v2 * v2 * v2 * v2 * v2 * v2;
 
-            var alpha = (binary(vv1, .5) + clip(vv2, .1, 1)) * 2.5 * (1 - (distSquared / (radius * radius)));
+            var alpha = (M.binary(vv1, .5) + M.clip(vv2, .1, 1)) * 2.5 * (1 - (distSquared / (radius * radius)));
             if (alpha > .5) {
                 access.set(p, alpha);
             }
@@ -207,59 +208,4 @@ public interface Shape {
         }
     }
 
-    private static double clip(double value, double min, double max) {
-        if (value < min || value > max) {
-            return 0;
-        }
-
-        return value;
-    }
-
-    private static double binary(double value, double threshold) {
-        return value > threshold ? 1 : 0;
-    }
-
-    private static double influence(double value, double influence) {
-        return value * influence + (1 - influence);
-    }
-
-    private static double hash(int x) {
-        x = (x << 13) ^ x;
-        return 1.0 - ((x * (x * x * 15731 + 789221) + 1376312589)
-            & 0x7fffffff) / 1073741824.0;
-    }
-
-    private static double fade(double t) {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    private static double noise(double x) {
-        int x0 = (int) Math.floor(x);
-        int x1 = x0 + 1;
-
-        double t = x - x0;
-
-        double v0 = hash(x0);
-        double v1 = hash(x1);
-
-        return Math.lerp(v0, v1, fade(t));
-    }
-
-    private static double fractalNoise(double x) {
-        double result = 0;
-        double amplitude = 1.0;
-        double frequency = 1.0;
-
-        for (int i = 0; i < 4; i++) {
-            result += noise(x * frequency) * amplitude;
-            amplitude *= 0.5;
-            frequency *= 2.0;
-        }
-
-        return result;
-    }
-
-    private static double noisy(double value, double scale, double offset, double influence) {
-        return value * influence(fractalNoise(value * scale + offset), influence);
-    }
 }
