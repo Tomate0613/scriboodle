@@ -1,6 +1,5 @@
 package dev.doublekekse.scriboodle.tools;
 
-import dev.doublekekse.Slider;
 import dev.doublekekse.scriboodle.ColorUtils;
 import dev.doublekekse.scriboodle.math.M;
 import dev.doublekekse.scriboodle.math.Vec2d;
