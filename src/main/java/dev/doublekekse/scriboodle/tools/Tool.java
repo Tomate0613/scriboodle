@@ -22,7 +22,7 @@ public record Tool(
     public void draw(CanvasAccess access, Vec2d center, Vec2d dir, double radius, double pressure, double distance, int color) {
         shape.drawShape((x, y, alpha) -> {
             var prev = access.get(x, y);
-            var newColor = pattern.getColor(prev, color, alpha, dynamics.modifyOpacity(opacity, pressure, distance));
+            var newColor = pattern.getColor(x, y, prev, color, alpha, dynamics.modifyOpacity(opacity, pressure, distance));
             access.set(x, y, newColor);
         }, center, dir, radius);
     }

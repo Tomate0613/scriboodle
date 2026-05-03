@@ -90,8 +90,10 @@ public class ToolModifyScreen extends Screen {
 
         layout.addChild(new SelectShapeButton(Shape.CIRCLE, "circle"));
         layout.addChild(new SelectShapeButton(Shape.SQUARE_ROTATED, "square_rotated"));
+        layout.addChild(new SelectShapeButton(Shape.BRUSH_ROTATED, "square_rotated"));
         layout.addChild(new SelectShapeButton(Shape.SPLOT, "splot"));
         layout.addChild(new SelectShapeButton(Shape.SPLOT_OTHER, "splot_other"));
+        layout.addChild(new SelectShapeButton(Shape.VORONOI, "voronoi_shape"));
         layout.addChild(new SelectShapeButton(Shape.BEANS, "beans"));
 
         return layout;
@@ -103,6 +105,9 @@ public class ToolModifyScreen extends Screen {
         layout.addChild(new SelectPatternButton(Pattern.DIRECT, "direct"));
         layout.addChild(new SelectPatternButton(Pattern.SOFT, "soft"));
         layout.addChild(new SelectPatternButton(Pattern.ROUGH, "rough"));
+        layout.addChild(new SelectPatternButton(Pattern.ROUGH_OTHER, "rough_other"));
+        layout.addChild(new SelectPatternButton(Pattern.VORONOI, "voronoi_pattern"));
+        layout.addChild(new SelectPatternButton(Pattern.VORONOI_OTHER, "voronoi_other"));
 
         return layout;
     }

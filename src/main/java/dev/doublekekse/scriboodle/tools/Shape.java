@@ -1,13 +1,16 @@
 package dev.doublekekse.scriboodle.tools;
 
-import dev.doublekekse.Slider;
 import dev.doublekekse.scriboodle.math.Vec2d;
+import dev.doublekekse.scriboodle.math.VoronoiNoise;
 import org.joml.Math;
 
 import java.util.Optional;
+import java.util.Random;
 
 @FunctionalInterface
 public interface Shape {
+    Random random = new Random();
+
     void drawShape(ShapeInterface access, Vec2d pos, Vec2d dir, double radius);
 
     @FunctionalInterface
@@ -15,6 +18,15 @@ public interface Shape {
         Optional<Double> test(double x, double y, double dX, double dY, double radius);
 
         ShapePredicate SQUARE = (x, y, _, _, radius) -> (x > -radius && x < radius) && (y > -radius && y < radius) ? Optional.of(1.0) : Optional.empty();
+        ShapePredicate BRUSH = (x, y, _, _, radius) -> {
+            var isInRectangle = (x > -radius * 1.5 && x < radius * 1.5) && (y > -radius && y < radius);
+            if (!isInRectangle) {
+                return Optional.empty();
+            }
+
+            var op = fractalNoise(y + Math.random() * .2);
+            return Optional.of(influence(op, .5 * influence(Math.abs(1 - Math.cos((x / 1.5) / Math.PI)), 1)));
+        };
 
         default ShapePredicate rotated() {
             return (x, y, dX, dY, radius) -> {
@@ -68,6 +80,8 @@ public interface Shape {
     };
 
     Shape SQUARE_ROTATED = ShapePredicate.SQUARE.rotated().toShape();
+    Shape BRUSH_ROTATED = ShapePredicate.BRUSH.rotated().toShape();
+
     Shape SPLOT = ((access, pos, dir, radius) -> {
 //        var offset = Math.random() * 1000;
         var offset = Math.random() * 5;
@@ -134,12 +148,14 @@ public interface Shape {
     });
 
     Shape BEANS = (access, pos, dir, radius) -> {
-        var beanCount = Slider.number("bean_count", 1);
+        var beanCount = 1;
+        var beanLength = 0.5;
+        var beanWidth = 0.1;
 
         for (int i = 0; i < beanCount; i++) {
             var center = pos.randomize(radius);
 
-            var beanOffset = dir.randomize(.5).normalize().scale(radius * Slider.number("bean_length", 1d));
+            var beanOffset = dir.randomize(.5).normalize().scale(radius * beanLength);
             var beanStart = center.sub(beanOffset);
             var beanEnd = center.add(beanOffset);
 
@@ -147,7 +163,7 @@ public interface Shape {
 
             for (var beanPos : beanStart.walk(beanEnd, .4)) {
                 var progress = beanPos.distanceTo(beanStart) / totalDistance;
-                var width = Math.sqrt(Math.sin(progress * Math.PI)) * radius * Slider.number("bean_width", .2);
+                var width = Math.sqrt(Math.sin(progress * Math.PI)) * radius * beanWidth;
                 var perp = dir.perpendicular().scale(width);
                 var left = beanPos.add(perp);
                 var right = beanPos.sub(perp);
@@ -159,12 +175,48 @@ public interface Shape {
         }
     };
 
+    Shape VORONOI = (access, pos, dir, radius) -> {
+        var noise = new VoronoiNoise(random.nextLong(Long.MAX_VALUE));
+
+        var vScale1 = 1;
+        var vScale2 = 1.5;
+
+        for (var p : pos.sub(radius, radius).walkSquare(pos.add(radius, radius), 1)) {
+            var distSquared = p.distanceToSquared(pos);
+            if (distSquared > radius * radius) {
+                continue;
+            }
+            var v1 = 1 - noise.f2MinusF1(p.scale(vScale1 / radius));
+            var v2 = 1 - noise.f2MinusF1(p.add(1000, 1000).scale(vScale2 / radius));
+
+            var vv1 = v1 * v1 * v1 * v1 * v1 * v1;
+            var vv2 = v2 * v2 * v2 * v2 * v2 * v2;
+
+            var alpha = (binary(vv1, .5) + clip(vv2, .1, 1)) * 2.5 * (1 - (distSquared / (radius * radius)));
+            if (alpha > .5) {
+                access.set(p, alpha);
+            }
+        }
+    };
+
     interface ShapeInterface {
         void set(int x, int y, double alpha);
 
         default void set(Vec2d pos, double alpha) {
             set((int) pos.x(), (int) pos.y(), alpha);
         }
+    }
+
+    private static double clip(double value, double min, double max) {
+        if (value < min || value > max) {
+            return 0;
+        }
+
+        return value;
+    }
+
+    private static double binary(double value, double threshold) {
+        return value > threshold ? 1 : 0;
     }
 
     private static double influence(double value, double influence) {

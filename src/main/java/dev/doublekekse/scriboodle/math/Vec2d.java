@@ -13,8 +13,16 @@ public record Vec2d(double x, double y) {
         return new Vec2d(x + value.x, y + value.y);
     }
 
+    public Vec2d add(double dx, double dy) {
+        return new Vec2d(x + dx, y + dy);
+    }
+
     public Vec2d sub(Vec2d value) {
         return new Vec2d(x - value.x, y - value.y);
+    }
+
+    public Vec2d sub(double dx, double dy) {
+        return new Vec2d(x - dx, y - dy);
     }
 
     public double length() {
@@ -22,10 +30,14 @@ public record Vec2d(double x, double y) {
     }
 
     public double distanceTo(Vec2d other) {
+        return Math.sqrt(distanceToSquared(other));
+    }
+
+    public double distanceToSquared(Vec2d other) {
         var dX = other.x - x;
         var dY = other.y - y;
 
-        return Math.sqrt(dX * dX + dY * dY);
+        return dX * dX + dY * dY;
     }
 
     public Vec2d normalize() {
@@ -83,6 +95,49 @@ public record Vec2d(double x, double y) {
                 if (traveled >= totalDist) {
                     done = true;
                     return target;
+                }
+
+                return point;
+            }
+        };
+    }
+
+    public Iterable<Vec2d> walkSquare(Vec2d target, double step) {
+        if (step <= 0) {
+            throw new IllegalArgumentException();
+        }
+
+        var minX = Math.min(x, target.x());
+        var maxX = Math.max(x, target.x());
+        var minY = Math.min(y, target.y());
+        var maxY = Math.max(y, target.y());
+
+        return () -> new Iterator<>() {
+            private double cx = minX;
+            private double cy = minY;
+
+            private boolean done = false;
+
+            @Override
+            public boolean hasNext() {
+                return !done;
+            }
+
+            @Override
+            public Vec2d next() {
+                if (done) throw new NoSuchElementException();
+
+                Vec2d point = new Vec2d(cx, cy);
+
+                cx += step;
+
+                if (cx > maxX) {
+                    cx = minX;
+                    cy += step;
+                }
+
+                if (cy > maxY) {
+                    done = true;
                 }
 
                 return point;
