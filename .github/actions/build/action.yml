@@ -1,5 +1,10 @@
 name: "build project"
 
+inputs:
+  github_token:
+    description: "GitHub token for Nix fetches"
+    required: false
+
 runs:
   using: "composite"
 
@@ -24,7 +29,7 @@ runs:
       if: steps.libpen-cache.outputs.cache-hit != 'true'
       uses: cachix/install-nix-action@v31
       with:
-        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_access_token: ${{ inputs.github_token }}
 
 
     - name: build libpen

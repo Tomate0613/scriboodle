@@ -11,6 +11,8 @@ jobs:
 
       - name: build project
         uses: ./.github/actions/build
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: upload build artifacts
         uses: actions/upload-artifact@v7
