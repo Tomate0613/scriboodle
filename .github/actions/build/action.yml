@@ -1,0 +1,46 @@
+name: "build project"
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: setup jdk
+      uses: actions/setup-java@v5
+      with:
+        java-version: "25"
+        distribution: "microsoft"
+
+    - name: validate gradle wrapper
+      uses: gradle/actions/wrapper-validation@v5
+
+    - name: cache libpen
+      uses: actions/cache@v5
+      id: libpen-cache
+      with:
+        path: src/main/resources/natives
+        key: libpen-${{ runner.os }}-${{ hashFiles('libpen/**') }}
+
+    - name: install nix
+      if: steps.libpen-cache.outputs.cache-hit != 'true'
+      uses: cachix/install-nix-action@v31
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+
+    - name: build libpen
+      if: steps.libpen-cache.outputs.cache-hit != 'true'
+      working-directory: libpen
+      run: nix build
+
+    - name: ensure native directory exists
+      if: steps.libpen-cache.outputs.cache-hit != 'true'
+      run: mkdir -p src/main/resources/natives
+
+    - name: copy libpen.so
+      if: steps.libpen-cache.outputs.cache-hit != 'true'
+      run: |
+        cp --no-preserve=mode,ownership libpen/result/lib/libpen.so \
+          src/main/resources/natives/
+
+    - name: run build script
+      run: ./gradlew build
