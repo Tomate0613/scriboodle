@@ -4,6 +4,8 @@ import dev.doublekekse.scriboodle.ColorUtils;
 import dev.doublekekse.scriboodle.Scriboodle;
 import dev.doublekekse.scriboodle.data.RawScribbleData;
 import dev.doublekekse.scriboodle.data.ScribbleData;
+import dev.doublekekse.scriboodle.gui.layout.FlexHorizontalLayout;
+import dev.doublekekse.scriboodle.gui.layout.ResizableEqualSpacingLayout;
 import dev.doublekekse.scriboodle.gui.widget.ChangeableSlider;
 import dev.doublekekse.scriboodle.gui.widget.RemappedSlider;
 import dev.doublekekse.scriboodle.math.Vec2d;
@@ -14,10 +16,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ScrollableLayout;
-import net.minecraft.client.gui.layouts.FrameLayout;
-import net.minecraft.client.gui.layouts.LayoutSettings;
-import net.minecraft.client.gui.layouts.LinearLayout;
-import net.minecraft.client.gui.layouts.SpacerElement;
+import net.minecraft.client.gui.layouts.*;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.InputWithModifiers;
@@ -29,7 +28,9 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.item.DyeColor;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class ToolModifyScreen extends Screen {
@@ -40,9 +41,12 @@ public class ToolModifyScreen extends Screen {
     int color;
     int radiusIndex;
     ScrollableLayout scrollLayout;
-    LinearLayout mainLayout;
+    ResizableEqualSpacingLayout mainLayout;
+    FrameLayout mainPreviewLayout;
     Preview mainPreview;
     SpacingSlider spacingSlider;
+    OpacitySlider opacitySlider;
+    List<FlexHorizontalLayout> flexLayouts = new ArrayList<>();
 
     protected ToolModifyScreen(Consumer<Tool> callback, Tool tool, int color, int radiusIndex) {
         super(Component.translatable("scriboodle.screen.modify_tool"));
@@ -59,8 +63,12 @@ public class ToolModifyScreen extends Screen {
 
         requiresUpload = true;
 
-        mainLayout = LinearLayout.horizontal().spacing(5);
-        var toolsLayout = LinearLayout.vertical().spacing(10);
+//        LinearLayout mainLayout = LinearLayout.horizontal().spacing(5);
+        var mainLayout = new ResizableEqualSpacingLayout(width, height, EqualSpacingLayout.Orientation.HORIZONTAL);//.spacing(5);
+//        EqualSpacingLayout mainLayout = LinearLayout.horizontal().spacing(5);
+        this.mainLayout = mainLayout;
+
+        var toolsLayout = LinearLayout.vertical().spacing(20);
         toolsLayout.addChild(new SpacerElement(5, 5));
 
         toolsLayout.defaultCellSetting().alignHorizontallyCenter();
@@ -71,22 +79,35 @@ public class ToolModifyScreen extends Screen {
         toolsLayout.addChild(radii());
         toolsLayout.addChild(spacing());
 
-        toolsLayout.addChild(new OpacitySlider(5 * 65, 10));
+        opacitySlider = new OpacitySlider(itemsPerRow() * 65, 10);
+        toolsLayout.addChild(opacitySlider);
         toolsLayout.addChild(new SpacerElement(5, 5));
 
         toolsLayout.arrangeElements();
         scrollLayout = new ScrollableLayout(minecraft, toolsLayout, height);
 
         mainPreview = new Preview(0, 0, previewSize(), previewSize(), "main");
+
+        mainPreviewLayout = new FrameLayout();
+        mainPreviewLayout.defaultChildLayoutSetting().alignHorizontallyCenter().alignVerticallyMiddle();
+        mainPreviewLayout.addChild(mainPreview);
+
         mainLayout.addChild(scrollLayout);
-        mainLayout.addChild(mainPreview, LayoutSettings::alignVerticallyMiddle);
+//        mainLayout.addChild(mainPreview, layoutSettings -> layoutSettings.alignVerticallyMiddle().alignHorizontallyCenter());
+        mainLayout.addChild(mainPreviewLayout);
 
         mainLayout.visitWidgets(this::addRenderableWidget);
         repositionElements();
     }
 
-    private LinearLayout shapes() {
-        var layout = LinearLayout.horizontal().spacing(5);
+    private FlexHorizontalLayout flex() {
+        var layout = new FlexHorizontalLayout(itemsPerRow());
+        flexLayouts.add(layout);
+        return layout;
+    }
+
+    private FlexHorizontalLayout shapes() {
+        var layout = flex().spacing(5);
 
         layout.addChild(new SelectShapeButton(Shape.CIRCLE, "circle"));
         layout.addChild(new SelectShapeButton(Shape.SQUARE_ROTATED, "square_rotated"));
@@ -99,8 +120,8 @@ public class ToolModifyScreen extends Screen {
         return layout;
     }
 
-    private LinearLayout patterns() {
-        var layout = LinearLayout.horizontal().spacing(5);
+    private FlexHorizontalLayout patterns() {
+        var layout = flex().spacing(5);
 
         layout.addChild(new SelectPatternButton(Pattern.DIRECT, "direct"));
         layout.addChild(new SelectPatternButton(Pattern.SOFT, "soft"));
@@ -112,8 +133,8 @@ public class ToolModifyScreen extends Screen {
         return layout;
     }
 
-    private LinearLayout dynamics() {
-        var layout = LinearLayout.horizontal().spacing(5);
+    private FlexHorizontalLayout dynamics() {
+        var layout = flex().spacing(5);
 
         layout.addChild(new SelectDynamicsButton(Dynamics.DIRECT, "direct"));
 
@@ -128,8 +149,8 @@ public class ToolModifyScreen extends Screen {
         return layout;
     }
 
-    private LinearLayout radii() {
-        var layout = LinearLayout.horizontal().spacing(5);
+    private FlexHorizontalLayout radii() {
+        var layout = flex().spacing(5);
 
         layout.addChild(new SelectRadiiButton(Tool.RADII_SMALL, "small"));
         layout.addChild(new SelectRadiiButton(Tool.RADII_BIG, "big"));
@@ -139,15 +160,16 @@ public class ToolModifyScreen extends Screen {
 
     private LinearLayout spacing() {
         var layout = LinearLayout.vertical().spacing(5);
-        var presetsLayout = LinearLayout.horizontal().spacing(5);
+        layout.defaultCellSetting().alignHorizontallyCenter();
+        var presetsLayout = flex().spacing(5);
 
         presetsLayout.addChild(new SelectPenDistanceButton(.1));
         presetsLayout.addChild(new SelectPenDistanceButton(.2));
         presetsLayout.addChild(new SelectPenDistanceButton(.3));
-        presetsLayout.addChild(new SelectPenDistanceButton(.35));
+//        presetsLayout.addChild(new SelectPenDistanceButton(.35));
         presetsLayout.addChild(new SelectPenDistanceButton(.5));
 
-        spacingSlider = new SpacingSlider(5 * 65, 10);
+        spacingSlider = new SpacingSlider(itemsPerRow() * 65, 10);
 
         layout.addChild(presetsLayout);
         layout.addChild(spacingSlider);
@@ -156,15 +178,28 @@ public class ToolModifyScreen extends Screen {
     }
 
     int previewSize() {
-        return Math.max(Math.min(width - scrollLayout.getWidth() - 15, height), 40);
+        return Math.max(Math.min(width - scrollLayout.getWidth() - 15, height / 2), 40);
+    }
+
+    int itemsPerRow() {
+        return width / 2 / 65;
     }
 
     @Override
     protected void repositionElements() {
+        mainLayout.setSize(width, height);
+
+        spacingSlider.setWidth(itemsPerRow() * 65);
+        opacitySlider.setWidth(itemsPerRow() * 65);
+
+        for (var flex : flexLayouts) {
+            flex.maxItemsPerRow(itemsPerRow());
+        }
 
         scrollLayout.setMaxHeight(height);
         scrollLayout.arrangeElements();
         mainPreview.setSize(previewSize(), previewSize());
+        mainPreviewLayout.setMinDimensions(width - scrollLayout.getWidth(), height);
         mainLayout.arrangeElements();
         requiresUpload = true;
         FrameLayout.centerInRectangle(mainLayout, getRectangle());
