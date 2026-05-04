@@ -25,7 +25,7 @@ public record ScribblePacket(
         ByteBufCodecs.INT, ScribblePacket::slot,
         ScribblePacket::new
     );
-    public static final CustomPacketPayload.Type<ScribblePacket> TYPE = new CustomPacketPayload.Type<>(Scriboodle.id("serverbound_scribble_packet"));
+    public static final CustomPacketPayload.Type<ScribblePacket> TYPE = new CustomPacketPayload.Type<>(Scriboodle.id("scribble_packet"));
 
     @Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
