@@ -32,7 +32,7 @@ public class PenApi {
     }
 
     private static Path extract() throws IOException {
-        var target = FabricLoader.getInstance().getGameDir().resolve(TARGET_FILENAME);
+        var target = FabricLoader.getInstance().getGameDir().resolve(Scriboodle.MOD_ID + "_natives").resolve(TARGET_FILENAME);
         var src = FabricLoader.getInstance().getModContainer(Scriboodle.MOD_ID).orElseThrow().findPath("natives").orElseThrow().resolve(SOURCE_FILENAME);
 
         Files.deleteIfExists(target);
