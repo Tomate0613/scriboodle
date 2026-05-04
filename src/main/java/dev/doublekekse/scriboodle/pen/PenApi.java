@@ -26,7 +26,7 @@ public class PenApi {
         try {
             NATIVE_INSTANCE = Native.load(extract().toAbsolutePath().toString(), PenNative.class);
             penCount = NATIVE_INSTANCE.pen_init();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             Scriboodle.LOGGER.error("Failed to load libpen", e);
         }
     }
