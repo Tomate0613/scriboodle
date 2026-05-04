@@ -12,5 +12,5 @@ int pen_init();
 
 int pen_get(Pen *out, int max);
 
-// No clue if this even works, I am currently just relying on the xserver to clean suff up
+// No clue if this even works, I am currently just relying on the xserver to clean stuff up
 void pen_destroy();
