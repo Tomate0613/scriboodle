@@ -28,6 +28,8 @@
 
             src = ./.;
 
+            nativeBuildInputs = with pkgs; [ pkg-config ];
+
             buildInputs = with pkgs; [
               libx11
               libxi
