@@ -153,7 +153,7 @@ public class ScribbleManager {
             }
         }
 
-        Scriboodle.LOGGER.info(String.valueOf(list));
+        Scriboodle.LOGGER.info("Loaded {} pages", list.size());
         return new PaginatedScribbleData(width, height, list);
     }
 
