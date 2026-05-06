@@ -1,13 +1,9 @@
 package dev.doublekekse.scriboodle.packet;
 
 import dev.doublekekse.scriboodle.Scriboodle;
-import dev.doublekekse.scriboodle.client.ScriboodleClient;
-import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
+import dev.doublekekse.scriboodle.data.ScribbleData;
 import dev.doublekekse.scriboodle.duck.MinecraftServerDuck;
 import dev.doublekekse.scriboodle.registry.ScriboodleComponents;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -17,11 +13,13 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jspecify.annotations.NonNull;
 
 public record ScribblePacket(
-    PaginatedScribbleData paginatedScribbleData,
+    ScribbleData scribbleData,
+    int page,
     int slot
 ) implements CustomPacketPayload {
     public static final StreamCodec<FriendlyByteBuf, ScribblePacket> STREAM_CODEC = StreamCodec.composite(
-        PaginatedScribbleData.STREAM_CODEC, ScribblePacket::paginatedScribbleData,
+        ScribbleData.STREAM_CODEC, ScribblePacket::scribbleData,
+        ByteBufCodecs.INT, ScribblePacket::page,
         ByteBufCodecs.INT, ScribblePacket::slot,
         ScribblePacket::new
     );
@@ -40,22 +38,22 @@ public record ScribblePacket(
         var stack = ctx.player().getInventory().getItem(packet.slot);
 
         var style = stack.get(ScriboodleComponents.SCRIBBLE_STYLE);
-        if (style == null || !style.validate(packet.paginatedScribbleData)) {
+        if (style == null || !style.validate(packet.scribbleData, packet.page)) {
             return;
         }
 
         var ref = stack.get(ScriboodleComponents.SCRIBBLE_REFERENCE);
         if (ref != null) {
-            ((MinecraftServerDuck) ctx.server()).scriboodle$getScribbleManager().set(ref, packet.paginatedScribbleData);
+            ((MinecraftServerDuck) ctx.server()).scriboodle$getScribbleManager().set(ref, packet.page, packet.scribbleData);
         }
     }
 
-    @Environment(EnvType.CLIENT)
-    public static void handleClient(ScribblePacket packet, ClientPlayNetworking.Context ctx) {
-        if (!Inventory.isHotbarSlot(packet.slot) && packet.slot != Inventory.SLOT_OFFHAND) {
-            return;
-        }
-
-        ScriboodleClient.openScreen(ctx.player(), packet.paginatedScribbleData, packet.slot);
-    }
+//    @Environment(EnvType.CLIENT)
+//    public static void handleClient(ScribblePacket packet, ClientPlayNetworking.Context ctx) {
+//        if (!Inventory.isHotbarSlot(packet.slot) && packet.slot != Inventory.SLOT_OFFHAND) {
+//            return;
+//        }
+//
+//        ScriboodleClient.openScreen(ctx.player(), packet.scribbleData, packet.slot);
+//    }
 }

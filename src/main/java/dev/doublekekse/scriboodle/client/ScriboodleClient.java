@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import dev.doublekekse.scriboodle.Scriboodle;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
-import dev.doublekekse.scriboodle.packet.ScribblePacket;
+import dev.doublekekse.scriboodle.packet.PaginatedScribblePacket;
 import dev.doublekekse.scriboodle.registry.ScriboodleComponents;
 import dev.doublekekse.scriboodle.gui.screen.ScribbleScreen;
 import net.fabricmc.api.ClientModInitializer;
@@ -35,7 +35,7 @@ public class ScriboodleClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientPlayNetworking.registerGlobalReceiver(ScribblePacket.TYPE, ScribblePacket::handleClient);
+        ClientPlayNetworking.registerGlobalReceiver(PaginatedScribblePacket.TYPE, PaginatedScribblePacket::handleClient);
     }
 
     public static void openScreen(Player player, PaginatedScribbleData scribble, int slot) {

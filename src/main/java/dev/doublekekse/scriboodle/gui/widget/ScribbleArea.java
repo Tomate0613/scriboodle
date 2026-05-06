@@ -49,6 +49,7 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
     public boolean drawing;
 
     boolean requiresUpload = true;
+    public boolean hasBeenModified = false;
     final DynamicTexture texture;
 
     Vec2d previous;
@@ -119,6 +120,7 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
         if (data.inBounds(x, y)) {
             data = data.set(x, y, color);
             requiresUpload = true;
+            hasBeenModified = true;
         }
     }
 
@@ -279,6 +281,7 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
     public void setData(ScribbleData data) {
         this.data = data;
         requiresUpload = true;
+        hasBeenModified = false;
     }
 
     public void resetTool(int toolIndex) {

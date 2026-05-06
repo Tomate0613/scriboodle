@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.doublekekse.scriboodle.Scriboodle;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
+import dev.doublekekse.scriboodle.data.ScribbleData;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -81,6 +82,10 @@ public record ScribbleStyle(
     );
 
     public boolean validate(PaginatedScribbleData data) {
-        return data.width() == foregroundWidth && data.height() == foregroundHeight && data.validate();
+        return data.width() == foregroundWidth && data.height() == foregroundHeight && data.pages().size() <= maxPageCount && data.validate();
+    }
+
+    public boolean validate(ScribbleData data, int page) {
+        return data.width == foregroundWidth && data.height == foregroundHeight && page < maxPageCount;
     }
 }

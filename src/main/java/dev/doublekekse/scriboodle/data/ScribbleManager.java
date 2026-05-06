@@ -6,7 +6,6 @@ import dev.doublekekse.scriboodle.Scriboodle;
 import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
-import org.apache.commons.io.FileUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -21,10 +20,11 @@ import java.util.regex.Pattern;
 
 public class ScribbleManager {
     private static final Pattern PAGINATED_PATTERN = Pattern.compile("paginated_(\\d+)");
+    private static final Pattern PAGE_PATTERN = Pattern.compile("page_(\\d+).png");
 
     private final MinecraftServer server;
     public int next;
-    public Map<Integer, PaginatedScribbleData> dirtyData = new HashMap<>();
+    public Map<Integer, ScribblePatch> dirtyData = new HashMap<>();
     public Cache<Integer, PaginatedScribbleData> cachedData = CacheBuilder
         .newBuilder()
         .expireAfterAccess(5, TimeUnit.MINUTES)
@@ -54,27 +54,28 @@ public class ScribbleManager {
     }
 
     public PaginatedScribbleData get(int id, ScribbleStyle style) {
-        var dirty = dirtyData.get(id);
-        if (dirty != null) {
-            return dirty;
-        }
+        var patch = dirtyData.get(id);
 
         var cached = cachedData.getIfPresent(id);
         if (cached != null) {
-            return cached;
+            return cached.with(patch);
         }
 
         try {
             var loaded = load(id, style);
             cachedData.put(id, loaded);
-            return loaded;
+            return loaded.with(patch);
         } catch (IOException e) {
             return null;
         }
     }
 
-    public void set(int id, PaginatedScribbleData data) {
-        dirtyData.put(id, data);
+    public void set(int id, int page, ScribbleData data) {
+        dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).add(page, data));
+    }
+
+    public void setAll(int id, PaginatedScribbleData data) {
+        dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).addAll(data));
     }
 
     public void saveDirty() {
@@ -82,17 +83,10 @@ public class ScribbleManager {
 
         for (var entry : dirtyData.entrySet()) {
             var key = entry.getKey();
-            var value = entry.getValue();
+            var patch = entry.getValue();
             var id = Scriboodle.id("paginated_" + key);
             var pagesPath = id.resolveAgainst(dataPath);
-            var pages = value.pages();
-            var cached = cachedData.getIfPresent(key);
-            var cachedPages = cached != null ? cached.pages() : null;
-
-            if (Files.exists(pagesPath) && !FileUtils.deleteQuietly(pagesPath.toFile())) {
-                Scriboodle.LOGGER.error("Failed to clear directory");
-                continue;
-            }
+            var addedPages = patch.added;
 
             try {
                 Files.createDirectories(pagesPath);
@@ -101,17 +95,13 @@ public class ScribbleManager {
                 continue;
             }
 
-            for (int i = 0; i < pages.size(); i++) {
-                var page = pages.get(i);
+            for (var page : addedPages.entrySet()) {
+                var data = page.getValue();
 
-                if (cachedPages != null && cachedPages.size() > i && cachedPages.get(i).equals(page)) {
-                    continue;
-                }
+                var bi = new BufferedImage(data.width, data.height, BufferedImage.TYPE_INT_ARGB);
+                data.write(bi);
 
-                var bi = new BufferedImage(page.width, page.height, BufferedImage.TYPE_INT_ARGB);
-                page.write(bi);
-
-                var pagePath = pagesPath.resolve("page_" + i + ".png");
+                var pagePath = pagesPath.resolve("page_" + page.getKey() + ".png");
                 try {
                     ImageIO.write(bi, "png", pagePath.toFile());
                 } catch (IOException e) {
@@ -119,7 +109,10 @@ public class ScribbleManager {
                 }
             }
 
-            cachedData.put(key, value);
+            var oldCached = cachedData.getIfPresent(key);
+            if (oldCached != null) {
+                cachedData.put(key, oldCached.with(patch));
+            }
         }
 
         dirtyData.clear();
@@ -133,10 +126,17 @@ public class ScribbleManager {
         var width = style.foregroundWidth();
         var height = style.foregroundHeight();
 
-        var list = new ArrayList<ScribbleData>();
+        var data = new PaginatedScribbleData(width, height, new ArrayList<>());
+
+        if (!Files.exists(pagesPath)) {
+            return data;
+        }
+
         try (var pagesStream = Files.newDirectoryStream(pagesPath)) {
             for (var entry : pagesStream) {
-                if (!entry.getFileName().toString().endsWith(".png")) {
+                var filename = entry.getFileName().toString();
+                var matcher = PAGE_PATTERN.matcher(filename);
+                if (!matcher.find()) {
                     continue;
                 }
 
@@ -149,19 +149,16 @@ public class ScribbleManager {
                 }
 
                 var raw = ScribbleData.read(bi);
-                list.add(raw);
+                data.set(Integer.parseInt(matcher.group(1)), raw);
             }
         }
 
-        Scriboodle.LOGGER.info("Loaded {} pages", list.size());
-        return new PaginatedScribbleData(width, height, list);
+        Scriboodle.LOGGER.info("Loaded {} pages", data.pages().size());
+        return data;
     }
 
-    public int create(ScribbleStyle style) {
-        var data = new PaginatedScribbleData(style.foregroundWidth(), style.foregroundHeight(), new ArrayList<>());
+    public int reserve() {
         next++;
-
-        set(next, data);
         return next;
     }
 }

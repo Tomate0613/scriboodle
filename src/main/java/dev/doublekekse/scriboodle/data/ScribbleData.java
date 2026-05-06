@@ -93,6 +93,10 @@ public abstract class ScribbleData implements Cloneable {
             return ShortPalettedScribbleData.STREAM_CODEC;
         }
 
+        if (id == 3) {
+            return EmptyScribbleData.STREAM_CODEC;
+        }
+
         return RawScribbleData.STREAM_CODEC;
     }
 }

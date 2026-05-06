@@ -3,6 +3,7 @@ package dev.doublekekse.scriboodle.data;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public record PaginatedScribbleData(int width, int height, List<ScribbleData> pa
 
     public void set(int index, ScribbleData data) {
         while (pages.size() <= index) {
-            pages.add(new BytePalettedScribbleData(width, height));
+            pages.add(new EmptyScribbleData(width, height));
         }
 
         pages.set(index, data.optimize());
@@ -48,5 +49,15 @@ public record PaginatedScribbleData(int width, int height, List<ScribbleData> pa
         }
 
         return true;
+    }
+
+    public PaginatedScribbleData with(@Nullable ScribblePatch patch) {
+        if (patch == null) {
+            return this;
+        }
+
+        var v = clone();
+        patch.apply(v);
+        return v;
     }
 }

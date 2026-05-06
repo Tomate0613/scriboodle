@@ -4,6 +4,7 @@ import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
 import dev.doublekekse.scriboodle.data.ScribbleData;
 import dev.doublekekse.scriboodle.duck.MinecraftServerDuck;
+import dev.doublekekse.scriboodle.packet.PaginatedScribblePacket;
 import dev.doublekekse.scriboodle.packet.ScribblePacket;
 import dev.doublekekse.scriboodle.registry.ScriboodleComponents;
 import dev.doublekekse.scriboodle.registry.ScriboodleSoundEvents;
@@ -42,7 +43,8 @@ public class Scriboodle implements ModInitializer {
         ScriboodleSoundEvents.register();
 
         PayloadTypeRegistry.serverboundPlay().register(ScribblePacket.TYPE, ScribblePacket.STREAM_CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(ScribblePacket.TYPE, ScribblePacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(PaginatedScribblePacket.TYPE, PaginatedScribblePacket.STREAM_CODEC);
+
         ServerPlayNetworking.registerGlobalReceiver(ScribblePacket.TYPE, ScribblePacket::handleServer);
 
         CommandRegistrationCallback.EVENT.register(((commandDispatcher, commandBuildContext, commandSelection) -> {
@@ -60,7 +62,7 @@ public class Scriboodle implements ModInitializer {
                 }
 
                 var scribbleManager = ((MinecraftServerDuck) ctx.getSource().getServer()).scriboodle$getScribbleManager();
-                var reference = scribbleManager.create(style);
+                var reference = scribbleManager.reserve();
                 item.set(ScriboodleComponents.SCRIBBLE_REFERENCE, reference);
                 ctx.getSource().sendSuccess(() -> Component.literal("Scriboodle"), false);
                 return 1;
@@ -90,8 +92,8 @@ public class Scriboodle implements ModInitializer {
                     assert player != null;
                     for (int i = 0; i < 36; i++) {
                         var iStack = new ItemStack(Items.BOOK, 1);
-                        var ref = scribbleManager.create(style);
-                        scribbleManager.set(ref, data);
+                        var ref = scribbleManager.reserve();
+                        scribbleManager.setAll(ref, data);
                         iStack.set(ScriboodleComponents.SCRIBBLE_REFERENCE, ref);
                         player.addItem(iStack);
                     }
@@ -123,7 +125,7 @@ public class Scriboodle implements ModInitializer {
 
                 var scribbleManager = server.scriboodle$getScribbleManager();
                 var scribble = scribbleManager.get(ref, style);
-                ServerPlayNetworking.send((ServerPlayer) player, new ScribblePacket(scribble, slot));
+                ServerPlayNetworking.send((ServerPlayer) player, new PaginatedScribblePacket(scribble, slot));
 
                 return InteractionResult.SUCCESS;
             }

@@ -55,13 +55,7 @@ public class ScribbleScreen extends Screen {
         this.style = style;
         this.paginatedScribbleData = paintedScribbleData.clone();
 
-        scribbleArea = new ScribbleArea(
-            foregroundLeft(),
-            foregroundTop(),
-            paginatedScribbleData.firstPage(),
-            minecraft.getTextureManager(),
-            minecraft.getSoundManager()
-        );
+        scribbleArea = new ScribbleArea(foregroundLeft(), foregroundTop(), paginatedScribbleData.firstPage(), minecraft.getTextureManager(), minecraft.getSoundManager());
     }
 
     @Override
@@ -93,9 +87,7 @@ public class ScribbleScreen extends Screen {
         dyes.ifPresent(holders -> holders.forEach(dyeHolder -> {
             var dye = dyeHolder.components().get(DataComponents.DYE);
             if (dye != null) {
-                addRenderableWidget(
-                    new ColorSelectButton(l + ((i.get() / rowCount) * dist), t + (i.getAndIncrement() % rowCount) * dist, Component.literal(dye.getName()), new ItemStack(dyeHolder.value()), dye, scribbleArea)
-                );
+                addRenderableWidget(new ColorSelectButton(l + ((i.get() / rowCount) * dist), t + (i.getAndIncrement() % rowCount) * dist, Component.literal(dye.getName()), new ItemStack(dyeHolder.value()), dye, scribbleArea));
             }
         }));
 
@@ -255,8 +247,9 @@ public class ScribbleScreen extends Screen {
     }
 
     void savePage() {
-        if (!scribbleArea.data.isEmpty()) {
+        if (scribbleArea.hasBeenModified) {
             paginatedScribbleData.set(currentPage, scribbleArea.data);
+            ClientPlayNetworking.send(new ScribblePacket(scribbleArea.data, currentPage, slot));
         }
     }
 
@@ -291,7 +284,6 @@ public class ScribbleScreen extends Screen {
 
     private void saveChanges() {
         savePage();
-        ClientPlayNetworking.send(new ScribblePacket(paginatedScribbleData, slot));
     }
 
     @Override
