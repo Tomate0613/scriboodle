@@ -154,6 +154,11 @@ public class Scriboodle implements ModInitializer {
 
                 var scribbleManager = server.scriboodle$getScribbleManager();
                 var scribble = scribbleManager.get(ref, style);
+
+                if(scribble == null) {
+                    return null;
+                }
+
                 ServerPlayNetworking.send((ServerPlayer) player, new PaginatedScribblePacket(scribble, slot));
 
                 return result;
