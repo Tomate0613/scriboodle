@@ -2,9 +2,8 @@ package dev.doublekekse.scriboodle.data;
 
 import dev.doublekekse.scriboodle.Scriboodle;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.network.codec.StreamCodec;
-
-import java.util.HashSet;
 
 public class RawScribbleData extends ScribbleData {
     final int[][] colors;
@@ -60,10 +59,13 @@ public class RawScribbleData extends ScribbleData {
 
     @Override
     public ScribbleData optimize() {
-        var set = new HashSet<>();
+        var set = new IntOpenHashSet();
+        int count = 0;
 
         int runs = 1;
         int prev = colors[0][0];
+
+        set.add(prev);
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -71,12 +73,13 @@ public class RawScribbleData extends ScribbleData {
                 if (c != prev) {
                     runs++;
                     prev = c;
-                    set.add(c);
+
+                    if (set.add(c)) {
+                        count++;
+                    }
                 }
             }
         }
-
-        int count = set.size();
 
         int rawSize = width * height * Integer.BYTES;
         int byteSize = count * Integer.BYTES + runs * 2;
