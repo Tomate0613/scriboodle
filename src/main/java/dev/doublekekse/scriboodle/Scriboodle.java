@@ -3,6 +3,7 @@ package dev.doublekekse.scriboodle;
 import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
 import dev.doublekekse.scriboodle.data.ScribbleData;
+import dev.doublekekse.scriboodle.data.ScribbleManager;
 import dev.doublekekse.scriboodle.duck.MinecraftServerDuck;
 import dev.doublekekse.scriboodle.packet.PaginatedScribblePacket;
 import dev.doublekekse.scriboodle.packet.ScribblePacket;
@@ -19,9 +20,11 @@ import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
@@ -53,17 +56,15 @@ public class Scriboodle implements ModInitializer {
                 if (player == null) {
                     return 0;
                 }
-                var item = player.getMainHandItem();
+                var stack = player.getMainHandItem();
 
-                var style = item.get(ScriboodleComponents.SCRIBBLE_STYLE);
-                if (style == null) {
-                    ctx.getSource().sendFailure(Component.translatable("scriboodle.command.scriboodle.failure.item", item.getDisplayName()));
+                if (!stack.has(ScriboodleComponents.SCRIBBLE_STYLE)) {
+                    ctx.getSource().sendFailure(Component.translatable("scriboodle.command.scriboodle.failure.item", stack.getDisplayName()));
                     return 0;
                 }
 
-                var scribbleManager = ((MinecraftServerDuck) ctx.getSource().getServer()).scriboodle$getScribbleManager();
-                var reference = scribbleManager.reserve();
-                item.set(ScriboodleComponents.SCRIBBLE_REFERENCE, reference);
+                stack.set(ScriboodleComponents.SCRIBBLEABLE, Unit.INSTANCE);
+
                 ctx.getSource().sendSuccess(() -> Component.literal("Scriboodle"), false);
                 return 1;
             }));
@@ -113,10 +114,38 @@ public class Scriboodle implements ModInitializer {
 
 
                 var stack = player.getInventory().getItem(slot);
-                var ref = stack.get(ScriboodleComponents.SCRIBBLE_REFERENCE);
                 var style = stack.get(ScriboodleComponents.SCRIBBLE_STYLE);
 
-                if (ref == null || style == null) {
+                if (style == null) {
+                    return null;
+                }
+
+                var result = InteractionResult.SUCCESS;
+
+                if (stack.has(ScriboodleComponents.SCRIBBLEABLE)) {
+                    var newStack = stack.copyWithCount(1);
+                    newStack.remove(ScriboodleComponents.SCRIBBLEABLE);
+
+                    var server = (MinecraftServerDuck) level.getServer();
+                    assert server != null;
+
+                    var scribbleManager = server.scriboodle$getScribbleManager();
+
+                    setupItem(scribbleManager, newStack, style);
+
+                    stack.consume(1, player);
+
+                    if (stack.isEmpty()) {
+                        stack = newStack;
+                        result = InteractionResult.SUCCESS.heldItemTransformedTo(newStack);
+                    } else {
+                        addOrDrop(player, newStack);
+                    }
+                }
+
+                var ref = stack.get(ScriboodleComponents.SCRIBBLE_REFERENCE);
+
+                if (ref == null) {
                     return null;
                 }
 
@@ -127,11 +156,22 @@ public class Scriboodle implements ModInitializer {
                 var scribble = scribbleManager.get(ref, style);
                 ServerPlayNetworking.send((ServerPlayer) player, new PaginatedScribblePacket(scribble, slot));
 
-                return InteractionResult.SUCCESS;
+                return result;
             }
 
             return null;
         });
+    }
+
+    private static void setupItem(ScribbleManager scribbleManager, ItemStack stack, ScribbleStyle style) {
+        var reference = scribbleManager.reserve();
+        stack.set(ScriboodleComponents.SCRIBBLE_REFERENCE, reference);
+    }
+
+    private static void addOrDrop(Player player, ItemStack stack) {
+        if (!player.addItem(stack)) {
+            player.drop(stack, false);
+        }
     }
 
     public static Identifier id(String path) {

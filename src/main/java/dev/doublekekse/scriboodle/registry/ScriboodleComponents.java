@@ -7,6 +7,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.util.Unit;
 
 public class ScriboodleComponents {
     public static final DataComponentType<Integer> SCRIBBLE_REFERENCE = register(
@@ -18,6 +19,13 @@ public class ScriboodleComponents {
         DataComponentType.<ScribbleStyle>builder().persistent(ScribbleStyle.CODEC).networkSynchronized(ScribbleStyle.STREAM_CODEC).build(),
         "scribble_style"
     );
+
+    public static final DataComponentType<Unit> SCRIBBLEABLE = register(
+        DataComponentType.<Unit>builder().persistent(Unit.CODEC).networkSynchronized(Unit.STREAM_CODEC).build(),
+        "scribbleable"
+    );
+
+
 
     private static <A, T extends DataComponentType<A>> T register(T componentType, String path) {
         return Registry.register(
