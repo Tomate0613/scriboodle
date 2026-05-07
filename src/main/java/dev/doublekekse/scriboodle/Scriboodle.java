@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,6 +64,7 @@ public class Scriboodle implements ModInitializer {
                     return 0;
                 }
 
+                stack.remove(DataComponents.FOOD);
                 stack.set(ScriboodleComponents.SCRIBBLEABLE, Unit.INSTANCE);
 
                 ctx.getSource().sendSuccess(() -> Component.literal("Scriboodle"), false);
