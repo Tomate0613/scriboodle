@@ -159,6 +159,8 @@ public class ScribbleManager {
 
     public int reserve() {
         next++;
+        // need to create empty scribble patch so we load the correct next
+        dirtyData.put(next, new ScribblePatch());
         return next;
     }
 }
