@@ -4,5 +4,11 @@
 
   "scriboodle.command.scriboodle.failure.item": "Unsupported Item: %s",
 
-  "scriboodle.subtitles.scribble": "Scribble"
+  "scriboodle.subtitles.scribble": "Scribble",
+  "scriboodle.screen.modify_tool.section.shapes": "Shapes",
+  "scriboodle.screen.modify_tool.section.patterns": "Patterns",
+  "scriboodle.screen.modify_tool.section.dynamics": "Dynamics",
+  "scriboodle.screen.modify_tool.section.radii": "Radius Presets",
+  "scriboodle.screen.modify_tool.section.spacing": "Spacing",
+  "scriboodle.screen.modify_tool.section.opacity": "Opacity"
 }

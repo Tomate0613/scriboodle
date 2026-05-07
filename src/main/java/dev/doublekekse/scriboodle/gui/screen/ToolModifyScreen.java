@@ -8,6 +8,7 @@ import dev.doublekekse.scriboodle.gui.layout.FlexHorizontalLayout;
 import dev.doublekekse.scriboodle.gui.layout.ResizableEqualSpacingLayout;
 import dev.doublekekse.scriboodle.gui.widget.ChangeableSlider;
 import dev.doublekekse.scriboodle.gui.widget.RemappedSlider;
+import dev.doublekekse.scriboodle.gui.widget.SimpleTextWidget;
 import dev.doublekekse.scriboodle.math.Vec2d;
 import dev.doublekekse.scriboodle.pen.PenApi;
 import dev.doublekekse.scriboodle.tools.*;
@@ -68,16 +69,27 @@ public class ToolModifyScreen extends Screen {
 //        EqualSpacingLayout mainLayout = LinearLayout.horizontal().spacing(5);
         this.mainLayout = mainLayout;
 
-        var toolsLayout = LinearLayout.vertical().spacing(20);
+        var toolsLayout = LinearLayout.vertical().spacing(15);
         toolsLayout.addChild(new SpacerElement(5, 5));
 
         toolsLayout.defaultCellSetting().alignHorizontallyCenter();
 
+        toolsLayout.addChild(new SimpleTextWidget(minecraft.font, Component.translatable("scriboodle.screen.modify_tool.section.shapes")));
         toolsLayout.addChild(shapes());
+
+        toolsLayout.addChild(new SimpleTextWidget(minecraft.font, Component.translatable("scriboodle.screen.modify_tool.section.patterns")));
         toolsLayout.addChild(patterns());
+
+        toolsLayout.addChild(new SimpleTextWidget(minecraft.font, Component.translatable("scriboodle.screen.modify_tool.section.dynamics")));
         toolsLayout.addChild(dynamics());
+
+        toolsLayout.addChild(new SimpleTextWidget(minecraft.font, Component.translatable("scriboodle.screen.modify_tool.section.radii")));
         toolsLayout.addChild(radii());
+
+        toolsLayout.addChild(new SimpleTextWidget(minecraft.font, Component.translatable("scriboodle.screen.modify_tool.section.spacing")));
         toolsLayout.addChild(spacing());
+
+        toolsLayout.addChild(new SimpleTextWidget(minecraft.font, Component.translatable("scriboodle.screen.modify_tool.section.opacity")));
         toolsLayout.addChild(opacity());
 
         toolsLayout.addChild(new SpacerElement(5, 5));
@@ -522,28 +534,28 @@ public class ToolModifyScreen extends Screen {
     }
 
     class SelectSpacingButton extends ToolSettingButton {
-        double penDistance;
+        double spacing;
 
-        SelectSpacingButton(double penDistance) {
-            super("spacing_" + penDistance);
+        SelectSpacingButton(double spacing) {
+            super("spacing_" + spacing);
 
-            this.penDistance = penDistance;
+            this.spacing = spacing;
         }
 
         @Override
         public void onPress(@NonNull InputWithModifiers input) {
             super.onPress(input);
-            spacingSlider.setRemappedValue(penDistance);
+            spacingSlider.setRemappedValue(spacing);
         }
 
         @Override
         boolean isUsed() {
-            return tool.spacing() == penDistance;
+            return tool.spacing() == spacing;
         }
 
         @Override
         Tool applySetting(Tool tool) {
-            return tool.withSpacing(penDistance);
+            return tool.withSpacing(spacing);
         }
 
         @Override
