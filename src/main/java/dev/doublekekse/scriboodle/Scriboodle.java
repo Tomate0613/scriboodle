@@ -131,9 +131,9 @@ public class Scriboodle implements ModInitializer {
 
                     var scribbleManager = server.scriboodle$getScribbleManager();
 
-                    setupItem(scribbleManager, newStack, style);
+                    setupItem(scribbleManager, newStack);
 
-                    stack.consume(1, player);
+                    stack.shrink(1);
 
                     if (stack.isEmpty()) {
                         stack = newStack;
@@ -163,7 +163,7 @@ public class Scriboodle implements ModInitializer {
         });
     }
 
-    private static void setupItem(ScribbleManager scribbleManager, ItemStack stack, ScribbleStyle style) {
+    private static void setupItem(ScribbleManager scribbleManager, ItemStack stack) {
         var reference = scribbleManager.reserve();
         stack.set(ScriboodleComponents.SCRIBBLE_REFERENCE, reference);
     }
