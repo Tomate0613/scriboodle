@@ -65,6 +65,8 @@ public class Scriboodle implements ModInitializer {
                 }
 
                 stack.remove(DataComponents.FOOD);
+                stack.remove(DataComponents.CONSUMABLE);
+
                 stack.set(ScriboodleComponents.SCRIBBLEABLE, Unit.INSTANCE);
 
                 ctx.getSource().sendSuccess(() -> Component.literal("Scriboodle"), false);
