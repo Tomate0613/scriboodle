@@ -48,6 +48,7 @@ public class ToolModifyScreen extends Screen {
     SpacingSlider spacingSlider;
     OpacitySlider opacitySlider;
     List<FlexHorizontalLayout> flexLayouts = new ArrayList<>();
+    List<Identifier> textureIds = new ArrayList<>();
 
     protected ToolModifyScreen(Consumer<Tool> callback, Tool tool, int color, int radiusIndex) {
         super(Component.translatable("scriboodle.screen.modify_tool"));
@@ -247,6 +248,7 @@ public class ToolModifyScreen extends Screen {
             super(x, y, width, height, Component.empty());
 
             scribbleId = Scriboodle.id("preview_" + id);
+            textureIds.add(scribbleId);
             tex();
         }
 
@@ -336,6 +338,7 @@ public class ToolModifyScreen extends Screen {
             scribbleId = Scriboodle.id("scribble_tool_setting_" + id);
             texture = new DynamicTexture(() -> "Scribble_tool_setting_" + id, getWidth(), getHeight(), true);
             minecraft.getTextureManager().register(scribbleId, texture);
+            textureIds.add(scribbleId);
         }
 
         int getBackgroundColor() {
@@ -629,5 +632,9 @@ public class ToolModifyScreen extends Screen {
     @Override
     public void onClose() {
         callback.accept(tool);
+
+        for(var textureId : textureIds) {
+            minecraft.getTextureManager().release(textureId);
+        }
     }
 }
