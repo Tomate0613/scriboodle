@@ -207,7 +207,6 @@ public class ScribbleManager {
     }
 
     public void delete(int key) {
-        cachedData.invalidate(key);
         dirtyData.compute(key, (_, v) -> (v != null ? v : new ScribblePatch()).delete());
     }
 
