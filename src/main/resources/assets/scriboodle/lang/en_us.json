@@ -3,6 +3,7 @@
   "scriboodle.screen.scribble": "Scribble Screen",
 
   "scriboodle.command.scriboodle.failure.item": "Unsupported Item: %s",
+  "scriboodle.command.scriboodle.delete.success": "Deleted scribble %s",
 
   "scriboodle.subtitles.scribble": "Scribble",
   "scriboodle.screen.modify_tool.section.shapes": "Shapes",

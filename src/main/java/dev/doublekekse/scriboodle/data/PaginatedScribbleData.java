@@ -56,8 +56,6 @@ public record PaginatedScribbleData(int width, int height, List<ScribbleData> pa
             return this;
         }
 
-        var v = clone();
-        patch.apply(v);
-        return v;
+        return patch.withPatches(this);
     }
 }

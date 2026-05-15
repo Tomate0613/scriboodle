@@ -1,5 +1,6 @@
 package dev.doublekekse.scriboodle;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
 import dev.doublekekse.scriboodle.data.ScribbleData;
@@ -17,6 +18,7 @@ import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
+import net.minecraft.commands.Commands;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -33,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 
+import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class Scriboodle implements ModInitializer {
@@ -71,14 +74,21 @@ public class Scriboodle implements ModInitializer {
 
                 ctx.getSource().sendSuccess(() -> Component.literal("Scriboodle"), false);
                 return 1;
-            }));
+            }).then(literal("delete").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(argument("id", IntegerArgumentType.integer(1)).executes(ctx -> {
+                var scribbleManager = ((MinecraftServerDuck) ctx.getSource().getServer()).scriboodle$getScribbleManager();
+                var id = IntegerArgumentType.getInteger(ctx, "id");
+                scribbleManager.delete(id);
+
+                ctx.getSource().sendSuccess(() -> Component.translatable("scriboodle.command.scriboodle.delete.success", id), true);
+                return 1;
+            }))));
 
             if (SharedConstants.IS_RUNNING_IN_IDE) {
                 commandDispatcher.register(literal(MOD_ID + "_stresstest").executes(ctx -> {
                     var player = ctx.getSource().getPlayer();
                     var scribbleManager = ((MinecraftServerDuck) ctx.getSource().getServer()).scriboodle$getScribbleManager();
 
-                    if(player == null) {
+                    if (player == null) {
                         return 0;
                     }
 
@@ -162,7 +172,7 @@ public class Scriboodle implements ModInitializer {
                 var scribbleManager = server.scriboodle$getScribbleManager();
                 var scribble = scribbleManager.get(ref, style);
 
-                if(scribble == null) {
+                if (scribble == null) {
                     return null;
                 }
 

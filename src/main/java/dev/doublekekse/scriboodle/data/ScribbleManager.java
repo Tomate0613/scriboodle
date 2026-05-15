@@ -6,6 +6,7 @@ import dev.doublekekse.scriboodle.Scriboodle;
 import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
+import org.apache.commons.io.FileUtils;
 
 import javax.imageio.*;
 import javax.imageio.metadata.IIOMetadataNode;
@@ -77,7 +78,7 @@ public class ScribbleManager {
         dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).addAll(data, author));
     }
 
-    public static void writeWithAuthor(RenderedImage ri, File output, String author) throws IOException {
+    private static void writeWithAuthor(RenderedImage ri, File output, String author) throws IOException {
         var writers = ImageIO.getImageWritersByFormatName("png");
 
         if (!writers.hasNext()) {
@@ -124,10 +125,20 @@ public class ScribbleManager {
             var pagesPath = id.resolveAgainst(dataPath);
             var addedPages = patch.added;
 
+            if(patch.deleted) {
+                var success = FileUtils.deleteQuietly(pagesPath.toFile());
+
+                if(!success) {
+                    Scriboodle.LOGGER.error("Failed to delete directory {}", pagesPath);
+                }
+
+                continue;
+            }
+
             try {
                 Files.createDirectories(pagesPath);
             } catch (IOException e) {
-                Scriboodle.LOGGER.error("Failed to create directory");
+                Scriboodle.LOGGER.error("Failed to create directory {}", pagesPath, e);
                 continue;
             }
 
@@ -192,6 +203,11 @@ public class ScribbleManager {
 
         Scriboodle.LOGGER.info("Loaded {} pages", data.pages().size());
         return data;
+    }
+
+    public void delete(int key) {
+        cachedData.invalidate(key);
+        dirtyData.compute(key, (_, v) -> (v != null ? v : new ScribblePatch()).delete());
     }
 
     public int reserve() {
