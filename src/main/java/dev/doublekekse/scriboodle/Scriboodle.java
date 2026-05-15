@@ -78,6 +78,10 @@ public class Scriboodle implements ModInitializer {
                     var player = ctx.getSource().getPlayer();
                     var scribbleManager = ((MinecraftServerDuck) ctx.getSource().getServer()).scriboodle$getScribbleManager();
 
+                    if(player == null) {
+                        return 0;
+                    }
+
 
                     var style = ScribbleStyle.BOOK;
                     var data = new PaginatedScribbleData(style.foregroundWidth(), style.foregroundHeight(), Collections.emptyList()).clone();
@@ -94,11 +98,10 @@ public class Scriboodle implements ModInitializer {
                         data.set(j, scribbleData);
                     }
 
-                    assert player != null;
                     for (int i = 0; i < 36; i++) {
                         var iStack = new ItemStack(Items.BOOK, 1);
                         var ref = scribbleManager.reserve();
-                        scribbleManager.setAll(ref, data);
+                        scribbleManager.setAll(ref, data, player.getUUID());
                         iStack.set(ScriboodleComponents.SCRIBBLE_REFERENCE, ref);
                         player.addItem(iStack);
                     }

@@ -44,7 +44,7 @@ public record ScribblePacket(
 
         var ref = stack.get(ScriboodleComponents.SCRIBBLE_REFERENCE);
         if (ref != null) {
-            ((MinecraftServerDuck) ctx.server()).scriboodle$getScribbleManager().set(ref, packet.page, packet.scribbleData);
+            ((MinecraftServerDuck) ctx.server()).scriboodle$getScribbleManager().set(ref, packet.page, packet.scribbleData, ctx.player().getUUID());
         }
     }
 

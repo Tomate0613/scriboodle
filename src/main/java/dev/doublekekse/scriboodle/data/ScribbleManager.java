@@ -7,14 +7,16 @@ import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 
-import javax.imageio.ImageIO;
+import javax.imageio.*;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -25,10 +27,7 @@ public class ScribbleManager {
     private final MinecraftServer server;
     public int next;
     public Map<Integer, ScribblePatch> dirtyData = new HashMap<>();
-    public Cache<Integer, PaginatedScribbleData> cachedData = CacheBuilder
-        .newBuilder()
-        .expireAfterAccess(5, TimeUnit.MINUTES)
-        .build();
+    public Cache<Integer, PaginatedScribbleData> cachedData = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     public ScribbleManager(MinecraftServer server) {
         var dataPath = server.getWorldPath(LevelResource.DATA).resolve(Scriboodle.MOD_ID);
@@ -70,12 +69,49 @@ public class ScribbleManager {
         }
     }
 
-    public void set(int id, int page, ScribbleData data) {
-        dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).add(page, data));
+    public void set(int id, int page, ScribbleData data, UUID author) {
+        dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).add(page, data, author));
     }
 
-    public void setAll(int id, PaginatedScribbleData data) {
-        dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).addAll(data));
+    public void setAll(int id, PaginatedScribbleData data, UUID author) {
+        dirtyData.compute(id, (_, v) -> (v != null ? v : new ScribblePatch()).addAll(data, author));
+    }
+
+    public static void writeWithAuthor(RenderedImage ri, File output, String author) throws IOException {
+        var writers = ImageIO.getImageWritersByFormatName("png");
+
+        if (!writers.hasNext()) {
+            throw new IllegalStateException("No PNG writer found");
+        }
+
+        var writer = writers.next();
+        var writeParam = writer.getDefaultWriteParam();
+
+        var typeSpecifier = ImageTypeSpecifier.createFromRenderedImage(ri);
+
+        var metadata = writer.getDefaultImageMetadata(typeSpecifier, writeParam);
+
+        var nativeFormat = metadata.getNativeMetadataFormatName();
+        var root = metadata.getAsTree(nativeFormat);
+
+        var text = new IIOMetadataNode("tEXt");
+
+        var textEntry = new IIOMetadataNode("tEXtEntry");
+        textEntry.setAttribute("keyword", "Author");
+        textEntry.setAttribute("value", author);
+
+        text.appendChild(textEntry);
+        root.appendChild(text);
+
+        metadata.setFromTree(nativeFormat, root);
+
+        try (ImageOutputStream ios = ImageIO.createImageOutputStream(output)) {
+            writer.setOutput(ios);
+
+            writer.write(metadata, new IIOImage(ri, null, metadata), writeParam);
+        }
+
+        writer.dispose();
     }
 
     public void saveDirty() {
@@ -96,14 +132,15 @@ public class ScribbleManager {
             }
 
             for (var page : addedPages.entrySet()) {
-                var data = page.getValue();
+                var data = page.getValue().data();
+                var author = page.getValue().author();
 
                 var bi = new BufferedImage(data.width, data.height, BufferedImage.TYPE_INT_ARGB);
                 data.write(bi);
 
                 var pagePath = pagesPath.resolve("page_" + page.getKey() + ".png");
                 try {
-                    ImageIO.write(bi, "png", pagePath.toFile());
+                    writeWithAuthor(bi, pagePath.toFile(), author.toString());
                 } catch (IOException e) {
                     Scriboodle.LOGGER.error("Failed to save page", e);
                 }
