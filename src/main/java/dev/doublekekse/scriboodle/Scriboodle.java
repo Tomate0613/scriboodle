@@ -51,7 +51,7 @@ public class Scriboodle implements ModInitializer {
 
         ServerPlayNetworking.registerGlobalReceiver(ScribblePacket.TYPE, ScribblePacket::handleServer);
 
-        CommandRegistrationCallback.EVENT.register(((commandDispatcher, commandBuildContext, commandSelection) -> {
+        CommandRegistrationCallback.EVENT.register(((commandDispatcher, _, _) -> {
             commandDispatcher.register(literal(MOD_ID).executes(ctx -> {
                 var player = ctx.getSource().getPlayer();
                 if (player == null) {
