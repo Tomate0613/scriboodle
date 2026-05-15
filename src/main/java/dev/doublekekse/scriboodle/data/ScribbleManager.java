@@ -132,6 +132,7 @@ public class ScribbleManager {
                     Scriboodle.LOGGER.error("Failed to delete directory {}", pagesPath);
                 }
 
+                cachedData.invalidate(key);
                 continue;
             }
 
