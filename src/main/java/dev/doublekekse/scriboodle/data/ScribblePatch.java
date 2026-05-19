@@ -32,19 +32,22 @@ public class ScribblePatch {
 
     public ScribblePatch delete() {
         deleted = true;
+        added.clear();
+
         return this;
     }
 
     public PaginatedScribbleData withPatches(PaginatedScribbleData paginatedScribbleData) {
         if (deleted) {
-            return new PaginatedScribbleData(paginatedScribbleData.width(), paginatedScribbleData.height(), new ArrayList<>());
+            paginatedScribbleData = new PaginatedScribbleData(paginatedScribbleData.width(), paginatedScribbleData.height(), new ArrayList<>());
+        } else {
+            paginatedScribbleData = paginatedScribbleData.clone();
         }
 
-        var v = paginatedScribbleData.clone();
         for (var entry : added.entrySet()) {
-            v.set(entry.getKey(), entry.getValue().data);
+            paginatedScribbleData.set(entry.getKey(), entry.getValue().data);
         }
 
-        return v;
+        return paginatedScribbleData;
     }
 }

@@ -125,15 +125,17 @@ public class ScribbleManager {
             var pagesPath = id.resolveAgainst(dataPath);
             var addedPages = patch.added;
 
-            if(patch.deleted) {
+            if (patch.deleted) {
                 var success = FileUtils.deleteQuietly(pagesPath.toFile());
 
-                if(!success) {
+                if (!success) {
                     Scriboodle.LOGGER.error("Failed to delete directory {}", pagesPath);
                 }
 
                 cachedData.invalidate(key);
-                continue;
+                if (patch.added.isEmpty()) {
+                    continue;
+                }
             }
 
             try {
