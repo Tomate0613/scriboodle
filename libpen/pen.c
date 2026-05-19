@@ -83,6 +83,11 @@ int pen_init() {
   int ndevices;
   XIDeviceInfo *devices = XIQueryDevice(dpy, XIAllDevices, &ndevices);
 
+  if(!devices) {
+    pen_destroy();
+    return 0;
+  }
+
   for (int i = 0; i < ndevices; i++) {
     XIDeviceInfo *dev = &devices[i];
 
@@ -94,6 +99,10 @@ int pen_init() {
       if (cls->type == XIValuatorClass) {
         XIValuatorClassInfo *v = (XIValuatorClassInfo *)cls;
 
+        if(!v->label) {
+          continue;
+        }
+
         char *name = XGetAtomName(dpy, v->label);
         if (!name) {
           continue;
@@ -103,7 +112,8 @@ int pen_init() {
           if (!pen) {
             pen = add_pen(dev->deviceid);
           }
-          if (pen) {
+
+          if (pen && v->min != v->max) {
             pen->pressure_idx = v->number;
             pen->pressure_min = v->min;
             pen->pressure_max = v->max;
