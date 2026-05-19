@@ -84,6 +84,7 @@ int pen_init() {
   XIDeviceInfo *devices = XIQueryDevice(dpy, XIAllDevices, &ndevices);
 
   if(!devices) {
+    fprintf(stderr, "Failed to get devices");
     pen_destroy();
     return 0;
   }
