@@ -265,6 +265,7 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
 
     public void dispose() {
         textureManager.release(SCRIBBLE_ID);
+        penApi.destroy();
     }
 
     public void tick() {

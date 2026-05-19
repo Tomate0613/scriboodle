@@ -63,6 +63,14 @@ public class PenApi {
         return Arrays.copyOf(out, count);
     }
 
+    public void destroy() {
+        INSTANCE = null;
+
+        if (NATIVE_INSTANCE != null) {
+            NATIVE_INSTANCE.pen_destroy();
+        }
+    }
+
     public double getPressureOrDefault(double defaultValue) {
         var pens = getPens();
 
