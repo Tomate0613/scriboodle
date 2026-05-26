@@ -22,7 +22,7 @@ out vec4 fragColor;
 void main() {
     vec4 color = texture(Sampler0, UV);
 
-    vec2 cursorOffset = vec2(mouse) - (UV * vec2(dimensions));
+    vec2 cursorOffset = vec2(mouse) - (UV * vec2(dimensions)) + vec2(.5, .5);
     float dist = length(cursorOffset);
 
     if (dist > radius - fwidth(dist) && dist < radius) {
