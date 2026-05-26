@@ -36,6 +36,9 @@ run-server/
 
 # java
 
+# modfest booth stuff
+booth/
+
 hs_err_*.log
 replay_*.log
 *.hprof
