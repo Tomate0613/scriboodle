@@ -26,11 +26,21 @@ void main() {
     float dist = length(cursorOffset);
 
     if (dist > radius - fwidth(dist) && dist < radius) {
+        vec4 prev = color;
+
         if (color.a < .5) {
             color = vec4(1, 1, 1, 1);
         }
 
         color = vec4(1 - color.rgb, 1);
+
+        float diff = length(color - prev);
+
+        if (diff < 0.3)
+        {
+            color = vec4(1, 1, 1, 1);
+        }
+
     } else if (dist < radius && fillColor.a > 0 && (fillColor.a * 2 - 1) * radius > cursorOffset.y) {
         //    } else if(dist < (radius * fillColor.a)) {
 //        color = fillColor * fillColor.a + color * (1 - fillColor.a);
