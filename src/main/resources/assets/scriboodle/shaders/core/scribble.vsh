@@ -20,7 +20,7 @@ in ivec2 UV2;
 in float LineWidth;
 
 out vec2 UV;
-out float radius;
+flat out float radius;
 out vec4 fillColor;
 flat out ivec2 mouse;
 flat out ivec2 dimensions;
