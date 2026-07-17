@@ -2,11 +2,12 @@ package dev.doublekekse.scriboodle.gui.widget;
 
 import dev.doublekekse.scriboodle.ColorUtils;
 import dev.doublekekse.scriboodle.Scriboodle;
+import dev.doublekekse.scriboodle.pen.Pen;
+import dev.doublekekse.scriboodle.pen.PenListener;
 import dev.doublekekse.scriboodle.registry.ScriboodleCursorTypes;
 import dev.doublekekse.scriboodle.data.ScribbleData;
 import dev.doublekekse.scriboodle.duck.GuiGraphicsExtractorDuck;
 import dev.doublekekse.scriboodle.math.Vec2d;
-import dev.doublekekse.scriboodle.pen.PenApi;
 import dev.doublekekse.scriboodle.registry.ScriboodleSoundEvents;
 import dev.doublekekse.scriboodle.tools.CanvasAccess;
 import dev.doublekekse.scriboodle.tools.Tool;
@@ -25,15 +26,14 @@ import net.minecraft.world.item.DyeColor;
 import org.joml.Math;
 import org.jspecify.annotations.NonNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class ScribbleArea extends AbstractWidget implements CanvasAccess {
+public class ScribbleArea extends AbstractWidget implements CanvasAccess, PenListener {
     public static final List<Tool> DEFAULT_TOOLS = List.of(
         Tool.FEATHER,
-        PenApi.getInstance().hasPen()
-            ? Tool.WATER_PEN
-            : Tool.WATER
+        /*PenApi.getInstance().hasPen()
+            ?*/ Tool.WATER_PEN
+            /*: Tool.WATER*/
     );
 
     private static final double VOLUME_BASE = 0.2;
@@ -44,7 +44,6 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
 
     final TextureManager textureManager;
     final SoundManager soundManager;
-    final PenApi penApi = PenApi.getInstance();
     public ScribbleData data;
     public boolean drawing;
 
@@ -69,6 +68,8 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
     public static int radiusIndex = 1;
 
     private int opacityNotificationTimer;
+
+    private Pen lastUsedPen;
 
     public enum ColorMode {
         FIREWORK,
@@ -159,16 +160,10 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
         return data.nearBounds((int) mX, (int) mY, radius);
     }
 
-
-    double radius() {
-        var pressure = penApi.getPressureOrDefault(DEFAULT_PRESSURE);
-        var tool = tools.get(toolIndex);
-        return tool.radius(radiusIndex, pressure);
-    }
-
-
-    void mouseDraw(Vec2d pos) {
-        var pressure = penApi.getPressureOrDefault(DEFAULT_PRESSURE);
+    void draw(Pen pen) {
+        var pressure = pen.pressure;
+        var pos = bufferVec(pen);
+        System.out.println(pos);
 
         if (!drawing) {
             previous = pos;
@@ -181,7 +176,7 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
         distance += dist;
 
         var tool = tool();
-        var radius = tool.radius(radiusIndex, pressure);
+        var radius = tool.radius(radiusIndex, pen);
 
         if (data.nearBounds(pos, radius)) {
             soundManager.play(SimpleSoundInstance.forUI(ScriboodleSoundEvents.SCRIBBLE, (float) (Math.random() + 0.7), (float) (VOLUME_BASE + VOLUME_FACTOR * dist)));
@@ -199,8 +194,9 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
 
         double radius = 0;
 
-        if (drawing || !isHoveringChild) {
-            radius = radius();
+        if (lastUsedPen != null && (drawing || !isHoveringChild)) {
+            var tool = tool();
+            radius = tool.radius(radiusIndex, lastUsedPen);
 
             if (mouseNearBounds(mouseX, mouseY, radius)) {
                 graphics.requestCursor(ScriboodleCursorTypes.HIDDEN);
@@ -229,32 +225,63 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
         return new Vec2d(x - getX(), y - getY());
     }
 
+    Vec2d bufferVec(Pen pen) {
+        return pen.position.sub(getX(), getY());
+    }
+
     @Override
-    public void mouseMoved(double x, double y) {
-        if (drawing) {
-            mouseDraw(bufferVec(x, y));
+    public void onPenDown(Pen pen) {
+        draw(pen);
+        lastUsedPen = pen;
+        drawing = true;
+    }
+
+    @Override
+    public void onPenUp(Pen pen) {
+        if (drawing && duration < 5 && distance < 1) {
+            var pressure = maxPressure;
+            var tool = tool();
+            var radius = tool.radius(radiusIndex, pen);
+
+            tool.stamp(this, previous, radius, pressure, realColor);
+        }
+
+        lastUsedPen = pen;
+        drawing = false;
+    }
+
+    @Override
+    public void onPenMoved(Pen pen) {
+        lastUsedPen = pen;
+
+        if (drawing && pen.down) {
+            draw(pen);
         }
     }
 
     @Override
+    public void mouseMoved(double x, double y) {
+    }
+
+    @Override
     public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
-        mouseDraw(bufferVec(event.x(), event.y()));
-        drawing = true;
+//        mouseDraw(bufferVec(event.x(), event.y()));
+//        drawing = true;
 
         return true;
     }
 
     @Override
     public boolean mouseReleased(@NonNull MouseButtonEvent event) {
-        if (drawing && duration < 5 && distance < 1) {
-            var pressure = maxPressure;
-            var tool = tool();
-            var radius = tool.radius(radiusIndex, pressure);
-
-            tool.stamp(this, previous, radius, pressure, realColor);
-        }
-
-        drawing = false;
+//        if (drawing && duration < 5 && distance < 1) {
+//            var pressure = maxPressure;
+//            var tool = tool();
+//            var radius = tool.radius(radiusIndex, pressure);
+//
+//            tool.stamp(this, previous, radius, pressure, realColor);
+//        }
+//
+//        drawing = false;
         return true;
     }
 
@@ -265,14 +292,13 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess {
 
     public void dispose() {
         textureManager.release(SCRIBBLE_ID);
-        penApi.destroy();
     }
 
     public void tick() {
         opacityNotificationTimer--;
 
-        if (drawing) {
-            var pressure = penApi.getPressureOrDefault(DEFAULT_PRESSURE);
+        if (drawing && lastUsedPen != null) {
+            var pressure = lastUsedPen.pressure;
             maxPressure = Math.max(maxPressure, pressure);
 
             duration++;

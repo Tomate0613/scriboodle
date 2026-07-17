@@ -10,7 +10,7 @@ import dev.doublekekse.scriboodle.gui.widget.ChangeableSlider;
 import dev.doublekekse.scriboodle.gui.widget.RemappedSlider;
 import dev.doublekekse.scriboodle.gui.widget.SimpleTextWidget;
 import dev.doublekekse.scriboodle.math.Vec2d;
-import dev.doublekekse.scriboodle.pen.PenApi;
+import dev.doublekekse.scriboodle.pen.Pen;
 import dev.doublekekse.scriboodle.tools.*;
 import dev.doublekekse.scriboodle.tools.Shape;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -150,7 +150,7 @@ public class ToolModifyScreen extends Screen {
 
         layout.addChild(new SelectDynamicsButton(Dynamics.DIRECT, "direct"));
 
-        if (PenApi.getInstance().hasPen()) {
+        if (/*PenApi.getInstance().hasPen()*/true) {
             layout.addChild(new SelectDynamicsButton(Dynamics.PRESSURE_OPACITY, "pressure_opacity"));
             layout.addChild(new SelectDynamicsButton(Dynamics.PRESSURE_RADIUS, "pressure_radius"));
         }
@@ -283,13 +283,15 @@ public class ToolModifyScreen extends Screen {
             Vec2d prev = null;
             double distance = 0;
 
+            var simulatedPen = new Pen();
+
             for (double i = 0; i < 1; i += 0.01) {
                 var r = i * .5;
-                var pressure = ((1 - ((i * i * i))) * (i)) * 2;
+                simulatedPen.pressure = (float) (((1 - ((i * i * i))) * (i)) * 2);
                 var tX = (Math.sin(i * Math.TAU) * r) + 0.6;
                 var tY = (Math.cos(i * Math.TAU) * r) + 0.4;
 
-                Vec2d to = new Vec2d(tX * width, tY * height);
+                var to = new Vec2d(tX * width, tY * height);
                 if (i == 0) {
                     prev = to;
                     continue;
@@ -297,7 +299,7 @@ public class ToolModifyScreen extends Screen {
 
                 distance += prev.distanceTo(to);
 
-                prev = tool.drawStroke(access, prev, to, tool.radius(radiusIndex, pressure), pressure, distance, color);
+                prev = tool.drawStroke(access, prev, to, tool.radius(radiusIndex, simulatedPen), simulatedPen.pressure, distance, color);
             }
 
             return access.data;
@@ -388,21 +390,23 @@ public class ToolModifyScreen extends Screen {
             Vec2d prev = null;
             double distance = 0;
 
+            var simulatedPen = new Pen();
+
             for (double i = 0; i < 1; i += 0.01) {
                 var r = i * .5;
-                var pressure = ((1 - ((i * i * i))) * (i)) * 2;
+                simulatedPen.pressure = (float) (((1 - ((i * i * i))) * (i)) * 2);
                 var tX = (Math.sin(i * Math.TAU) * r) + 0.6;
                 var tY = (Math.cos(i * Math.TAU) * r) + 0.4;
 
+                var to = new Vec2d(tX * width, tY * height);
                 if (i == 0) {
-                    prev = new Vec2d(tX * width, tY * height);
+                    prev = to;
                     continue;
                 }
 
-                var to = new Vec2d(tX * width, tY * height);
                 distance += prev.distanceTo(to);
 
-                prev = tool.drawStroke(access, prev, to, tool.radius(2, pressure), pressure, distance, color);
+                prev = tool.drawStroke(access, prev, to, tool.radius(2, simulatedPen), simulatedPen.pressure, distance, color);
             }
 
             return access.data;

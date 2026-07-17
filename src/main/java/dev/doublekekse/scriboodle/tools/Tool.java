@@ -1,6 +1,7 @@
 package dev.doublekekse.scriboodle.tools;
 
 import dev.doublekekse.scriboodle.math.Vec2d;
+import dev.doublekekse.scriboodle.pen.Pen;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -15,8 +16,8 @@ public record Tool(
     double opacity,
     double[] radii
 ) {
-    public double radius(int radiusIndex, double pressure) {
-        return dynamics.modifyRadius(radii[radiusIndex], pressure);
+    public double radius(int radiusIndex, Pen pen) {
+        return dynamics.modifyRadius(radii[radiusIndex], pen.pressure);
     }
 
     public void draw(CanvasAccess access, Vec2d center, Vec2d dir, double radius, double pressure, double distance, int color) {

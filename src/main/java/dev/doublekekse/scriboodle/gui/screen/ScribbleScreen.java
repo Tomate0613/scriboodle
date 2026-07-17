@@ -7,6 +7,8 @@ import dev.doublekekse.scriboodle.gui.widget.button.ScribbleItemButton;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
 import dev.doublekekse.scriboodle.component.ScribbleStyle;
 import dev.doublekekse.scriboodle.packet.ScribblePacket;
+import dev.doublekekse.scriboodle.pen.Pen;
+import dev.doublekekse.scriboodle.pen.PenListener;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
@@ -28,8 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ScribbleScreen extends Screen {
-
+public class ScribbleScreen extends Screen implements PenListener {
     private final List<Renderable> customRenderables = new ArrayList<>();
 
     PaginatedScribbleData paginatedScribbleData;
@@ -306,5 +307,23 @@ public class ScribbleScreen extends Screen {
     protected void clearWidgets() {
         super.clearWidgets();
         customRenderables.clear();
+    }
+
+    @Override
+    public void onPenDown(Pen pen) {
+        scribbleArea.onPenDown(pen);
+        System.out.println("PEN DOWN");
+    }
+
+    @Override
+    public void onPenUp(Pen pen) {
+        scribbleArea.onPenUp(pen);
+        System.out.println("PEN UP");
+    }
+
+    @Override
+    public void onPenMoved(Pen pen) {
+        scribbleArea.onPenMoved(pen);
+//        System.out.println("PEN MOVED");
     }
 }
