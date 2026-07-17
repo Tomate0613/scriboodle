@@ -13,7 +13,7 @@ uniform sampler2D Sampler0;
 
 in vec2 UV;
 in vec4 fillColor;
-in float radius;
+flat in float radius;
 flat in ivec2 mouse;
 flat in ivec2 dimensions;
 

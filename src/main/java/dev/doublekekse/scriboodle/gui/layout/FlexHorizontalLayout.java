@@ -7,6 +7,7 @@ import net.minecraft.client.gui.layouts.Layout;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.util.Util;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -71,6 +72,13 @@ public class FlexHorizontalLayout implements Layout {
     public <T extends LayoutElement> T addChild(final T child) {
         return this.addChild(child, this.newCellSettings());
     }
+
+    @Override
+    public void removeChildren() {
+        // TODO
+        throw new NotImplementedException();
+    }
+
 
     public <T extends LayoutElement> T addChild(final T child, final Consumer<LayoutSettings> layoutSettingsAdjustments) {
         var cellSettings = Util.make(this.newCellSettings(), layoutSettingsAdjustments);

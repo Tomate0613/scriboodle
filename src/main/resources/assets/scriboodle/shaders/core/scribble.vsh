@@ -13,11 +13,11 @@ layout (std140) uniform Projection {
 };
 
 in vec3 Position;
+in vec4 Color;
 in vec2 UV0;
 in ivec2 UV1;
 in ivec2 UV2;
-in float Radius;
-in vec4 FillColor;
+in float LineWidth;
 
 out vec2 UV;
 out float radius;
@@ -28,9 +28,9 @@ flat out ivec2 dimensions;
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
 
-    radius = Radius;
+    radius = LineWidth;
     UV = UV0;
     dimensions = UV1;
     mouse = UV2;
-    fillColor = FillColor;
+    fillColor = Color;
 }

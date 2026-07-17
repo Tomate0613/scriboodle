@@ -3,7 +3,7 @@ package dev.doublekekse.scriboodle.data;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.VarInt;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.Tuple;
+import oshi.util.tuples.Pair;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -146,8 +146,8 @@ public class BytePalettedScribbleData extends ScribbleData {
         return x * height + y;
     }
 
-    private Tuple<Integer, Integer> pos(int idx) {
-        return new Tuple<>(idx / height, idx % height);
+    private Pair<Integer, Integer> pos(int idx) {
+        return new Pair<>(idx / height, idx % height);
     }
 
     static BytePalettedScribbleData cloneFrom(RawScribbleData raw) {

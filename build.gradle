@@ -40,9 +40,6 @@ dependencies {
 	implementation 'com.scrtwpns:mixbox:2.0.0'
 	include 'com.scrtwpns:mixbox:2.0.0'
 
-	implementation "net.java.dev.jna:jna:5.18.1"
-
-
 	def sliderJar = file("libs/slider-1.0.0.jar")
 	if (sliderJar.exists()) {
 		dependencies {

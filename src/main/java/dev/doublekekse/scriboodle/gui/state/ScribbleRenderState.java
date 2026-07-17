@@ -1,7 +1,7 @@
 package dev.doublekekse.scriboodle.gui.state;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
@@ -40,10 +40,10 @@ public record ScribbleRenderState(
         var mX = mouseX - x;
         var mY = mouseY - y;
 
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x, this.y).setLineWidth(r).setUv(0, 0).setUv2(mX, mY).setUv1(width, height).setColor(color);
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x, this.y + height).setLineWidth(r).setUv(0, 1).setUv2(mX, mY).setUv1(width, height).setColor(color);
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x + width, this.y + height).setLineWidth(r).setUv(1, 1).setUv2(mX, mY).setUv1(width, height).setColor(color);
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x + width, this.y).setLineWidth(r).setUv(1, 0).setUv2(mX, mY).setUv1(width, height).setColor(color);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x, this.y).setColor(color).setUv(0, 0).setUv1(width, height).setUv2(mX, mY).setLineWidth(r);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x, this.y + height).setColor(color).setUv(0, 1).setUv1(width, height).setUv2(mX, mY).setLineWidth(r);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x + width, this.y + height).setColor(color).setUv(1, 1).setUv1(width, height).setUv2(mX, mY).setLineWidth(r);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x + width, this.y).setColor(color).setUv(1, 0).setUv1(width, height).setUv2(mX, mY).setLineWidth(r);
     }
 
     @Nullable

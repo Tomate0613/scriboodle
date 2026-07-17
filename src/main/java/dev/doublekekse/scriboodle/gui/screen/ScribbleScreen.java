@@ -139,9 +139,9 @@ public class ScribbleScreen extends Screen {
                     scribbleArea.resetTool(toolIndex);
                     return;
                 }
-                minecraft.setScreen(new ToolModifyScreen((modified) -> {
+                minecraft.gui.setScreen(new ToolModifyScreen((modified) -> {
                     ScribbleArea.tools.set(toolIndex, modified);
-                    minecraft.setScreen(ScribbleScreen.this);
+                    minecraft.gui.setScreen(ScribbleScreen.this);
                 }, ScribbleArea.tools.get(toolIndex), scribbleArea.realColor, ScribbleArea.radiusIndex));
             }
         }

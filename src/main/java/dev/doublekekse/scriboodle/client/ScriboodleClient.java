@@ -1,8 +1,9 @@
 package dev.doublekekse.scriboodle.client;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormatElement;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import dev.doublekekse.scriboodle.Scriboodle;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
 import dev.doublekekse.scriboodle.packet.PaginatedScribblePacket;
@@ -15,13 +16,15 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.world.entity.player.Player;
 
 public class ScriboodleClient implements ClientModInitializer {
-    public static final VertexFormat SCRIBBLE_FORMAT = VertexFormat.builder()
-        .add("Position", VertexFormatElement.POSITION)
-        .add("FillColor", VertexFormatElement.COLOR)
-        .add("UV0", VertexFormatElement.UV0)
-        .add("UV1", VertexFormatElement.UV1)
-        .add("UV2", VertexFormatElement.UV2)
-        .add("Radius", VertexFormatElement.LINE_WIDTH)
+    // TODO Figure out a way to make this cleaner, probably not use vanilla BufferBuilder
+    public static final VertexFormat SCRIBBLE_FORMAT = VertexFormat.builder(0)
+        .addAttribute("Position", GpuFormat.RGB32_FLOAT)
+        .addAttribute("Color", GpuFormat.RGBA8_UNORM)
+        .addAttribute("UV0", GpuFormat.RG32_FLOAT)
+        .addAttribute("UV1", GpuFormat.RG16_SINT)
+        .addAttribute("UV2", GpuFormat.RG16_SINT)
+        // This is used for radius, but it seems like i can no longer give it any name when using BufferBuilder
+        .addAttribute("LineWidth", GpuFormat.R32_FLOAT)
         .build();
 
     public static final RenderPipeline SCRIBBLE_GUI = RenderPipelines.register(
@@ -29,7 +32,8 @@ public class ScriboodleClient implements ClientModInitializer {
             .withLocation(Scriboodle.id("pipeline/scribble"))
             .withVertexShader(Scriboodle.id("core/scribble"))
             .withFragmentShader(Scriboodle.id("core/scribble"))
-            .withVertexFormat(SCRIBBLE_FORMAT, VertexFormat.Mode.QUADS)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withVertexBinding(0, SCRIBBLE_FORMAT)
             .build()
     );
 
@@ -43,7 +47,7 @@ public class ScriboodleClient implements ClientModInitializer {
         var style = stack.get(ScriboodleComponents.SCRIBBLE_STYLE);
 
         if (style != null && style.validate(scribble)) {
-            Minecraft.getInstance().setScreen(new ScribbleScreen(player, slot, scribble, style));
+            Minecraft.getInstance().gui.setScreen(new ScribbleScreen(player, slot, scribble, style));
         }
     }
 }
