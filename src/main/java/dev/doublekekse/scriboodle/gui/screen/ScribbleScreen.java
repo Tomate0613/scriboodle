@@ -6,6 +6,7 @@ import dev.doublekekse.scriboodle.gui.widget.ScribbleArea;
 import dev.doublekekse.scriboodle.gui.widget.button.ScribbleItemButton;
 import dev.doublekekse.scriboodle.data.PaginatedScribbleData;
 import dev.doublekekse.scriboodle.component.ScribbleStyle;
+import dev.doublekekse.scriboodle.math.Vec2d;
 import dev.doublekekse.scriboodle.packet.ScribblePacket;
 import dev.doublekekse.scriboodle.pen.Pen;
 import dev.doublekekse.scriboodle.pen.PenListener;
@@ -46,6 +47,11 @@ public class ScribbleScreen extends Screen implements PenListener {
     final int slot;
 
     ScribbleArea scribbleArea;
+
+    Pen cursorFakePen = new Pen() {{
+        pressure = 1;
+        inProximity = true;
+    }};
 
     public ScribbleScreen(Player owner, int slot, PaginatedScribbleData paintedScribbleData, ScribbleStyle style) {
         super(Component.translatable("scriboodle.screen.scribble"));
@@ -200,17 +206,6 @@ public class ScribbleScreen extends Screen implements PenListener {
     }
 
     @Override
-    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
-        var hasClicked = super.mouseClicked(event, doubleClick);
-
-        if (!hasClicked) {
-            scribbleArea.mouseClicked(event, doubleClick);
-        }
-
-        return true;
-    }
-
-    @Override
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         if (minecraft.hasAltDown()) {
             scribbleArea.changeToolOpacity(scrollY / 20);
@@ -232,14 +227,31 @@ public class ScribbleScreen extends Screen implements PenListener {
     }
 
     @Override
+    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
+        var hasClicked = super.mouseClicked(event, doubleClick);
+
+        if (!hasClicked) {
+            scribbleArea.mouseClicked(event, doubleClick);
+            cursorFakePen.down = true;
+            onPenDown(cursorFakePen);
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean mouseReleased(@NonNull MouseButtonEvent event) {
         scribbleArea.mouseReleased(event);
+        cursorFakePen.down = false;
+        onPenUp(cursorFakePen);
         return super.mouseReleased(event);
     }
 
     @Override
     public void mouseMoved(double x, double y) {
         scribbleArea.mouseMoved(x, y);
+        cursorFakePen.position = new Vec2d(x, y);
+        onPenMoved(cursorFakePen);
     }
 
     private void updateButtonVisibility() {
