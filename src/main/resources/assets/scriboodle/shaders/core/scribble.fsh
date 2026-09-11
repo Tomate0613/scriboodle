@@ -1,4 +1,5 @@
 #version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // Can't moj_import in things used during startup, when resource packs don't exist.
 // This is a copy of dynamicimports.glsl
@@ -11,13 +12,13 @@ layout (std140) uniform DynamicTransforms {
 
 uniform sampler2D Sampler0;
 
-in vec2 UV;
-in vec4 fillColor;
-flat in float radius;
-flat in ivec2 mouse;
-flat in ivec2 dimensions;
+layout (location = 0) in vec2 UV;
+layout (location = 1) flat in float radius;
+layout (location = 2) in vec4 fillColor;
+layout (location = 3) flat in ivec2 mouse;
+layout (location = 4) flat in ivec2 dimensions;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor;
 
 void main() {
     vec4 color = texture(Sampler0, UV);
@@ -43,7 +44,7 @@ void main() {
 
     } else if (dist < radius && fillColor.a > 0 && (fillColor.a * 2 - 1) * radius > cursorOffset.y) {
         //    } else if(dist < (radius * fillColor.a)) {
-//        color = fillColor * fillColor.a + color * (1 - fillColor.a);
+        //        color = fillColor * fillColor.a + color * (1 - fillColor.a);
         color = fillColor;
     }
 
