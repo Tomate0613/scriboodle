@@ -163,7 +163,6 @@ public class ScribbleArea extends AbstractWidget implements CanvasAccess, PenLis
     void draw(Pen pen) {
         var pressure = pen.pressure;
         var pos = bufferVec(pen);
-        System.out.println(pos);
 
         if (!drawing) {
             previous = pos;
